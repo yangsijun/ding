@@ -33,3 +33,17 @@ targets:
     capabilities:
       push_notifications:
         enabled: true
+  DingWatch:
+    type: application
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: DingWatch
+        includes:
+          - "**/*.swift"
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: dev.sijun.ding.watchkitapp
+      PRODUCT_NAME: DingWatch
+      SWIFT_VERSION: "5.9"
+      WATCHOS_DEPLOYMENT_TARGET: "10.0"
+      GENERATE_INFOPLIST_FILE: "YES"

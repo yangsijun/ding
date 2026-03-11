@@ -1,0 +1,5 @@
+    cd /Users/sijun/coding/ding/DingApp/DingApp.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator26.2.sdk -o /Users/sijun/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/watchsimulator26.2-23S303-963ebdd26732d23a23bcca82c2045e26.sdkstatcache
+
+** BUILD SUCCEEDED **
+
