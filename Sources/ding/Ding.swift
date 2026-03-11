@@ -1,6 +1,5 @@
 import ArgumentParser
 import DingCore
-import DingCore
 
 @main
 struct Ding: AsyncParsableCommand {
