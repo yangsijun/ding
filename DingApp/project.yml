@@ -13,7 +13,7 @@ targets:
     sources:
       - path: DingApp
         includes:
-          - "*.swift"
+          - "**/*.swift"
     resources:
       - path: DingApp/Info.plist
       - path: DingApp/DingApp.entitlements

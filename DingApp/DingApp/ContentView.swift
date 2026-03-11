@@ -2,64 +2,93 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var tokenStore: TokenStore
+    @EnvironmentObject var notificationStore: NotificationStore
     @StateObject private var permissionManager = NotificationPermissionManager()
     @State private var copied = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("ding")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+        TabView {
+            tokenTab
+                .tabItem {
+                    Label("Token", systemImage: "key.fill")
+                }
 
-            Spacer()
-
-            if !tokenStore.deviceToken.isEmpty {
-                tokenReceivedView
-            } else if let error = tokenStore.registrationError {
-                errorView(error: error)
-            } else if permissionManager.authorizationStatus == .denied {
-                deniedView
-            } else {
-                requestPermissionView
-            }
-
-            Spacer()
+            NotificationListView()
+                .tabItem {
+                    Label("Notifications", systemImage: "bell.fill")
+                }
         }
-        .padding()
         .task {
             await permissionManager.checkStatus()
+        }
+    }
+
+    // MARK: - Token Tab
+
+    private var tokenTab: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Spacer()
+
+                if !tokenStore.deviceToken.isEmpty {
+                    tokenReceivedView
+                } else if let error = tokenStore.registrationError {
+                    errorView(error: error)
+                } else if permissionManager.authorizationStatus == .denied {
+                    deniedView
+                } else {
+                    requestPermissionView
+                }
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("ding")
         }
     }
 
     // MARK: - Token Received
 
     private var tokenReceivedView: some View {
-        VStack(spacing: 12) {
-            Label("Notification permission granted", systemImage: "checkmark.circle.fill")
+        VStack(spacing: 16) {
+            Label("Notifications enabled", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
                 .font(.subheadline)
 
+            QRCodeView(token: tokenStore.deviceToken)
+
             Text(tokenStore.deviceToken)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(.caption2, design: .monospaced))
                 .textSelection(.enabled)
-                .padding()
+                .padding(8)
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
+                .lineLimit(3)
 
-            Button {
-                UIPasteboard.general.string = tokenStore.deviceToken
-                copied = true
-                Task {
-                    try? await Task.sleep(nanoseconds: 2_000_000_000)
-                    copied = false
+            HStack(spacing: 12) {
+                Button {
+                    UIPasteboard.general.string = tokenStore.deviceToken
+                    copied = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        copied = false
+                    }
+                } label: {
+                    Label(
+                        copied ? "Copied!" : "Copy Token",
+                        systemImage: copied ? "checkmark" : "doc.on.doc"
+                    )
                 }
-            } label: {
-                Label(
-                    copied ? "Copied!" : "Copy Token",
-                    systemImage: copied ? "checkmark" : "doc.on.doc"
-                )
+                .buttonStyle(.borderedProminent)
+
+                ShareLink(
+                    item: tokenStore.deviceToken,
+                    subject: Text("ding Device Token")
+                ) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.borderedProminent)
         }
     }
 
@@ -136,4 +165,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(TokenStore())
+        .environmentObject(NotificationStore())
 }
