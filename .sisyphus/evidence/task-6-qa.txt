@@ -1,0 +1,23 @@
+Task 6 QA Verification - $(date)
+===================================
+
+1. BUILD: ✅ BUILD SUCCEEDED (xcodebuild -scheme DingApp -destination 'platform=iOS Simulator,name=iPhone 17' build)
+
+2. AppDelegate.swift UNUserNotificationCenter.current().delegate = self: ✅ FOUND (line 12)
+
+3. AppDelegate.swift didRegisterForRemoteNotificationsWithDeviceToken: ✅ FOUND (line 36)
+
+4. ContentView.swift UIPasteboard.general.string: ✅ FOUND (line 50)
+
+5. TokenStore.swift registrationError property: ✅ FOUND (line 6: @Published var registrationError: String? = nil)
+
+6. ContentView.swift error state with registrationError: ✅ FOUND (line 18: else if let error = tokenStore.registrationError)
+
+Files Modified:
+- DingApp/DingApp/AppDelegate.swift: Full APNs registration + UNUserNotificationCenterDelegate
+- DingApp/DingApp/ContentView.swift: Token display, copy, error, denied, permission request states
+- DingApp/DingApp/NotificationPermissionManager.swift: NEW - permission checking/requesting
+
+Files Unchanged (already correct):
+- DingApp/DingApp/TokenStore.swift: Already had registrationError: String?
+- DingApp/DingApp/DingApp.swift: Already wired correctly

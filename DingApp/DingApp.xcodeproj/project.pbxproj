@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		462AC1D33C89C62A967E7B96 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6F5513C5B3AE2E74FB73AF6 /* ContentView.swift */; };
+		8C8D3D7CCDF5ECDEEFD57542 /* NotificationPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D0D16AE9D43772334E538A /* NotificationPermissionManager.swift */; };
 		D6FF0F56120026C19B695F83 /* DingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D187CA5E0D7668E550049 /* DingApp.swift */; };
 		E2F6779DB86589F0B3E14A90 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */; };
 		F4791D8B1D55F5EF1CABAE3E /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A02A35ADD49169216C5B9F2B /* TokenStore.swift */; };
@@ -17,6 +18,7 @@
 		0C1D187CA5E0D7668E550049 /* DingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DingApp.swift; sourceTree = "<group>"; };
 		203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		51D3800B04E2C874A84627AD /* DingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		64D0D16AE9D43772334E538A /* NotificationPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionManager.swift; sourceTree = "<group>"; };
 		A02A35ADD49169216C5B9F2B /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		C6F5513C5B3AE2E74FB73AF6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -28,6 +30,7 @@
 				203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */,
 				C6F5513C5B3AE2E74FB73AF6 /* ContentView.swift */,
 				0C1D187CA5E0D7668E550049 /* DingApp.swift */,
+				64D0D16AE9D43772334E538A /* NotificationPermissionManager.swift */,
 				A02A35ADD49169216C5B9F2B /* TokenStore.swift */,
 			);
 			path = DingApp;
@@ -107,6 +110,7 @@
 				E2F6779DB86589F0B3E14A90 /* AppDelegate.swift in Sources */,
 				462AC1D33C89C62A967E7B96 /* ContentView.swift in Sources */,
 				D6FF0F56120026C19B695F83 /* DingApp.swift in Sources */,
+				8C8D3D7CCDF5ECDEEFD57542 /* NotificationPermissionManager.swift in Sources */,
 				F4791D8B1D55F5EF1CABAE3E /* TokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

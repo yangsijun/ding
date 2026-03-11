@@ -1,0 +1,5 @@
+    cd /Users/sijun/coding/ding/DingApp
+    builtin-validationUtility /Users/sijun/Library/Developer/Xcode/DerivedData/DingApp-gczmglxdxxxhvmdyrzxbgqckxvwc/Build/Products/Debug-iphonesimulator/DingApp.app -shallow-bundle -infoplist-subpath Info.plist
+
+** BUILD SUCCEEDED **
+
