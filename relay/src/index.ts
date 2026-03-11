@@ -24,6 +24,13 @@ interface PushPayload {
   timestamp?: string;
 }
 
+interface WebhookPayload {
+  title: string;
+  body: string;
+  status?: string;
+  source?: string;
+}
+
 interface DeviceRecord {
   devices: string[];
   registeredAt: string;
@@ -67,6 +74,13 @@ export default {
         return new Response("Method Not Allowed", { status: 405, headers: CORS_HEADERS });
       }
       return handlePush(request, env);
+    }
+
+    if (url.pathname === "/webhook") {
+      if (request.method !== "POST") {
+        return new Response("Method Not Allowed", { status: 405, headers: CORS_HEADERS });
+      }
+      return handleWebhook(request, env);
     }
 
     return new Response("Not Found", { status: 404, headers: CORS_HEADERS });
@@ -211,6 +225,111 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
   const apnsPayload = {
     aps: {
       alert: { title: payload.title, body: payload.body },
+      sound: "default",
+    },
+    ding: payload,
+  };
+
+  // 7. Fan-out to all registered devices
+  let sent = 0;
+  let failed = 0;
+  let tokensRemoved = 0;
+  const tokensToRemove: string[] = [];
+
+  for (const token of deviceTokens) {
+    const result = await sendToAPNs(token, apnsPayload, jwt, env.APNS_TOPIC, false);
+
+    if (result.status === 200) {
+      sent++;
+    } else if (result.reason === "BadDeviceToken") {
+      // Try sandbox fallback
+      const sandboxResult = await sendToAPNs(token, apnsPayload, jwt, env.APNS_TOPIC, true);
+      if (sandboxResult.status === 200) {
+        sent++;
+      } else {
+        // Token is truly bad — mark for removal
+        tokensToRemove.push(token);
+        failed++;
+        tokensRemoved++;
+      }
+    } else {
+      failed++;
+    }
+  }
+
+  // 8. Remove bad tokens from KV
+  if (tokensToRemove.length > 0 && deviceRecord) {
+    deviceRecord.devices = deviceRecord.devices.filter((t) => !tokensToRemove.includes(t));
+    deviceRecord.lastSeenAt = new Date().toISOString();
+    await env.STORE.put(kvKey, JSON.stringify(deviceRecord));
+  }
+
+  return jsonResponse({ sent, failed, tokens_removed: tokensRemoved });
+}
+
+// ─── /webhook ────────────────────────────────────────────────────────────────
+
+async function handleWebhook(request: Request, env: Env): Promise<Response> {
+  // 1. Validate Authorization
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  // 2. Rate limiting: 10 webhooks per minute per API key
+  const rateLimitKey = `ratelimit:${apiKey}:${Math.floor(Date.now() / 60000)}`;
+  const currentCount = parseInt(await env.STORE.get(rateLimitKey) ?? "0", 10);
+  if (currentCount >= 10) {
+    return jsonResponse({ error: "Rate limit exceeded. Max 10 webhooks per minute." }, 429);
+  }
+  await env.STORE.put(rateLimitKey, String(currentCount + 1), { expirationTtl: 120 });
+
+  // 3. Parse and validate body
+  let payload: WebhookPayload;
+  try {
+    payload = await request.json() as WebhookPayload;
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+
+  if (!payload.title || !payload.body) {
+    return jsonResponse({ error: "Missing required fields: title and body" }, 400);
+  }
+
+  // 4. Get device tokens for this API key
+  const kvKey = `devices:${apiKey}`;
+  const deviceRecord = await env.STORE.get<DeviceRecord>(kvKey, "json");
+
+  let deviceTokens: string[] = [];
+  if (deviceRecord && deviceRecord.devices.length > 0) {
+    deviceTokens = deviceRecord.devices;
+  } else if (env.DEVICE_TOKEN) {
+    // Fallback to single-device mode (legacy)
+    deviceTokens = [env.DEVICE_TOKEN];
+  } else {
+    return jsonResponse({ error: "No devices registered for this API key" }, 404);
+  }
+
+  // 5. Get or generate APNs JWT
+  let jwt: string;
+  try {
+    jwt = await getOrCreateJWT(env);
+  } catch (err) {
+    return jsonResponse({ error: `JWT generation failed: ${String(err)}` }, 500);
+  }
+
+  // 6. Build APNs payload with source as subtitle if present
+  const alertPayload: { title: string; body: string; subtitle?: string } = {
+    title: payload.title,
+    body: payload.body,
+  };
+  if (payload.source) {
+    alertPayload.subtitle = payload.source;
+  }
+
+  const apnsPayload = {
+    aps: {
+      alert: alertPayload,
       sound: "default",
     },
     ding: payload,
