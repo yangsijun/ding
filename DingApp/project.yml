@@ -1,0 +1,33 @@
+name: DingApp
+options:
+  bundleIdPrefix: dev.sijun
+  deploymentTarget:
+    iOS: "16.0"
+  minimumXcodeGenVersion: 2.35
+
+targets:
+  DingApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: .
+        includes:
+          - "*.swift"
+    resources:
+      - path: Info.plist
+      - path: DingApp.entitlements
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: dev.sijun.ding
+      PRODUCT_NAME: DingApp
+      CODE_SIGN_ENTITLEMENTS: DingApp/DingApp.entitlements
+      INFOPLIST_FILE: DingApp/Info.plist
+      SWIFT_VERSION: "5.9"
+      IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    entitlements:
+      path: DingApp.entitlements
+      properties:
+        aps-environment: development
+    capabilities:
+      push_notifications:
+        enabled: true

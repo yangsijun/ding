@@ -1,0 +1,16 @@
+OVERVIEW: Send notifications to Apple Watch via Ding
+
+USAGE: ding <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  wait                    Run a command and notify on completion
+  notify                  Send a notification
+  setup                   Configure Ding with APNs credentials
+  status                  Check Ding configuration status
+  test                    Send a test notification
+
+  See 'ding help <subcommand>' for detailed help.
