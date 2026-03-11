@@ -13,6 +13,8 @@ struct Ding: AsyncParsableCommand {
             SetupCommand.self,
             StatusCommand.self,
             TestCommand.self,
+            InstallHookCommand.self,
+            UninstallHookCommand.self,
         ]
     )
 }
