@@ -1,8 +1,8 @@
 import Foundation
 
 /// Shared notification payload exchanged between Mac, iPhone, and Watch
-struct NotificationPayload: Codable, Sendable {
-    enum Status: String, Codable, CaseIterable, Sendable {
+public struct NotificationPayload: Codable, Sendable {
+    public enum Status: String, Codable, CaseIterable, Sendable {
         case success
         case failure
         case warning
@@ -18,7 +18,7 @@ struct NotificationPayload: Codable, Sendable {
     let exitCode: Int?
     let duration: TimeInterval?
 
-    init(
+    public init(
         id: UUID = UUID(),
         title: String,
         body: String,
@@ -39,21 +39,21 @@ struct NotificationPayload: Codable, Sendable {
     }
 
     /// Encode to JSON Data for transmission
-    func encode() throws -> Data {
+    public func encode() throws -> Data {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         return try encoder.encode(self)
     }
 
     /// Decode from JSON Data
-    static func decode(from data: Data) throws -> NotificationPayload {
+    public static func decode(from data: Data) throws -> NotificationPayload {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(NotificationPayload.self, from: data)
     }
 
     /// Convert to dictionary for WatchConnectivity
-    func toDictionary() throws -> [String: Any] {
+    public func toDictionary() throws -> [String: Any] {
         let data = try encode()
         guard let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw NSError(
@@ -66,7 +66,7 @@ struct NotificationPayload: Codable, Sendable {
     }
 
     /// Create from dictionary (WatchConnectivity)
-    static func fromDictionary(_ dict: [String: Any]) throws -> NotificationPayload {
+    public static func fromDictionary(_ dict: [String: Any]) throws -> NotificationPayload {
         let data = try JSONSerialization.data(withJSONObject: dict)
         return try decode(from: data)
     }
