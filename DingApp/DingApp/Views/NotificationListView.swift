@@ -16,26 +16,37 @@ struct NotificationListView: View {
                     }
                 } else {
                     List {
-                        ForEach(notificationStore.records) { record in
-                            HStack(spacing: 12) {
-                                Circle()
-                                    .fill(statusColor(record.status))
-                                    .frame(width: 10, height: 10)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(record.title)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                    Text(record.body)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(2)
+                        ForEach(groupedRecords, id: \.0) { section, records in
+                            Section(section) {
+                                ForEach(records) { record in
+                                    NavigationLink(destination: NotificationDetailView(record: record)) {
+                                        HStack(spacing: 12) {
+                                            Circle()
+                                                .fill(statusColor(record.status))
+                                                .frame(width: 10, height: 10)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(record.title)
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                Text(record.body)
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                                    .lineLimit(2)
+                                            }
+                                            Spacer()
+                                            Text(record.timestamp, style: .relative)
+                                                .font(.caption2)
+                                                .foregroundStyle(.tertiary)
+                                        }
+                                        .padding(.vertical, 2)
+                                    }
                                 }
-                                Spacer()
-                                Text(record.timestamp, style: .relative)
-                                    .font(.caption2)
-                                    .foregroundStyle(.tertiary)
+                                .onDelete { indexSet in
+                                    indexSet.forEach { i in
+                                        notificationStore.delete(record: records[i])
+                                    }
+                                }
                             }
-                            .padding(.vertical, 2)
                         }
                     }
                 }
@@ -49,6 +60,20 @@ struct NotificationListView: View {
                     .foregroundStyle(.red)
                 }
             }
+        }
+    }
+
+    private var groupedRecords: [(String, [NotificationRecord])] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: notificationStore.records) { record in
+            calendar.startOfDay(for: record.timestamp)
+        }
+        let sortedKeys = grouped.keys.sorted(by: >)
+        return sortedKeys.map { date in
+            let label = calendar.isDateInToday(date) ? "Today" :
+                        calendar.isDateInYesterday(date) ? "Yesterday" :
+                        date.formatted(.dateTime.month().day().year())
+            return (label, grouped[date]!)
         }
     }
 

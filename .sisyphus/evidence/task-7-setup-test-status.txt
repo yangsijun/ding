@@ -1,0 +1,47 @@
+=== Test 1: Invalid token (too short) ===
+Error: Invalid device token. Must be a 64-character hexadecimal string.
+Get your token from the ding iOS app.
+Usage: ding <subcommand>
+  See 'ding --help' for more information.
+Exit: 64
+
+=== Test 2: Invalid token (non-hex characters) ===
+Error: Invalid device token. Must be a 64-character hexadecimal string.
+Get your token from the ding iOS app.
+Usage: ding <subcommand>
+  See 'ding --help' for more information.
+Exit: 64
+
+=== Test 3: Status (not configured) ===
+ding status
+===========
+
+Device token: ✗ Not configured
+API key:      ✗ Not configured
+Relay URL:    https://ding-relay.example.com
+
+Checking relay connectivity... ✗ A server with the specified hostname could not be found.
+
+Status: ✗ Not configured — run `ding setup <token>` first
+
+=== Test 4: Setup with valid token ===
+✓ Device token stored
+✓ API key stored: 03356d59541f5fe0a38b75c5f80f342935fddd0c952e7e026cfeb823f7fa8abe
+
+Next steps:
+  1. Set RELAY_SECRET=03356d59541f5fe0a38b75c5f80f342935fddd0c952e7e026cfeb823f7fa8abe in your Cloudflare Worker secrets
+  2. Set DEVICE_TOKEN=aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa1111bbbb2222 in your Cloudflare Worker secrets
+  3. Run `ding test` to verify the connection
+Exit: 0
+
+=== Test 5: Status (configured) ===
+ding status
+===========
+
+Device token: ✓ Stored (aaaa1111...bbbb2222)
+API key:      ✓ Stored
+Relay URL:    https://ding-relay.example.com
+
+Checking relay connectivity... ✗ A server with the specified hostname could not be found.
+
+Status: ✓ Ready

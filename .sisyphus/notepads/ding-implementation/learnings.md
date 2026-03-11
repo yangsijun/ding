@@ -147,3 +147,113 @@
 ### Build
 - Build command: `xcodebuild -scheme DingApp -destination 'platform=iOS Simulator,name=iPhone 17' build`
 - Simulator name is iPhone 17 (not iPhone 16) with this Xcode version
+
+## Task 9: iOS App Store Features (COMPLETED)
+
+### New Files Created
+- `DingApp/DingApp/Views/QRCodeView.swift` — CoreImage QR code generator, .interpolation(.none), 200x200 frame
+- `DingApp/DingApp/Views/NotificationListView.swift` — List with color-coded status circles, Clear All button
+- `DingApp/DingApp/Models/NotificationRecord.swift` — Codable struct with id/title/body/status/timestamp
+- `DingApp/DingApp/Models/NotificationStore.swift` — @MainActor ObservableObject, max 20 records in UserDefaults
+
+### Key Implementation Patterns
+
+#### QR Code Generation
+- Use `CIFilter.qrCodeGenerator()` from CoreImage.CIFilterBuiltins
+- Set `filter.message = Data(string.utf8)` and `filter.correctionLevel = "M"`
+- Scale output by 10x with `CGAffineTransform(scaleX: 10, y: 10)` for crisp rendering
+- Apply `.interpolation(.none)` on Image to prevent blurring
+- Wrap in white background with 8pt padding and 8pt corner radius
+
+#### ShareLink Integration
+- `ShareLink(item: tokenStore.deviceToken, subject: Text("ding Device Token")) { Label(...) }`
+- Works natively in iOS 16.1+ — no additional dependencies needed
+- Pair with Copy button for dual sharing options
+
+#### Notification Storage
+- NotificationStore: @MainActor ObservableObject with @Published records array
+- Max 20 records enforced: `if records.count > maxRecords { records = Array(records.prefix(maxRecords)) }`
+- Persist to UserDefaults with JSONEncoder/JSONDecoder using iso8601 date strategy
+- Load on init, save after every add/clearAll operation
+
+#### Notification Parsing from APNs
+- In `willPresent` delegate: `userInfo["ding"] as? [String: Any]` to extract custom payload
+- Fallback to notification.request.content.title/body if ding payload missing
+- Also handle `didReceiveRemoteNotification` for background/terminated app receipt
+- Use `Task { @MainActor in }` to call NotificationStore from nonisolated delegate method
+
+#### Tab Bar Navigation
+- `TabView { ... }` with `.tabItem { Label(..., systemImage: "...") }` for each tab
+- Token tab: NavigationView wrapping VStack with 4 states
+- Notifications tab: NotificationListView() directly
+- Both tabs receive environment objects via .environmentObject()
+
+#### Project Structure
+- `project.yml` sources must use `"**/*.swift"` (not `"*.swift"`) to include Views/ and Models/ subdirectories
+- After adding new files, re-run `xcodegen generate` to update .xcodeproj
+- All new files automatically included in build target
+
+### Build Verification
+- `xcodebuild -scheme DingApp -destination 'platform=iOS Simulator,name=iPhone 17' build` → BUILD SUCCEEDED
+- Evidence saved to .sisyphus/evidence/task-9-qr-share.txt and task-9-notification-list.txt
+- Git commit: `feat(ios): add QR code, share, notification list`
+
+## Task 10: Homebrew Tap + Release Automation (COMPLETED)
+
+### Files Created
+- `scripts/release.sh` — builds arm64 + x86_64, lipo universal binary, zip + SHA256
+- `homebrew-tap/Formula/ding.rb` — Homebrew formula (PLACEHOLDER_SHA256 until real release)
+- `homebrew-tap/README.md` — installation instructions
+
+### Key Patterns
+- lipo command: `lipo -create .build/arm64-apple-macosx/release/ding .build/x86_64-apple-macosx/release/ding -output .build/release-artifacts/ding`
+- Archive: `ditto -c -k --keepParent ding ding-VERSION-macos.zip`
+- SHA256: `shasum -a 256 file.zip | awk '{print $1}'`
+- Formula sha256 is PLACEHOLDER until real GitHub release is created
+- brew install requires actual GitHub release URL with real binary
+
+## Task 12: Shell Auto-Hook (COMPLETED)
+
+### Files Created
+- `Sources/DingCore/Commands/InstallHookCommand.swift` — detects shell, writes hook script, appends to RC
+- `Sources/DingCore/Commands/UninstallHookCommand.swift` — removes hook script + RC source line
+- `Sources/DingCore/Resources/hook.zsh` — zsh hook using preexec/precmd + add-zsh-hook
+- `Sources/DingCore/Resources/hook.bash` — bash hook using trap DEBUG + PROMPT_COMMAND
+
+### Key Patterns
+- Shell detection: `ProcessInfo.processInfo.environment["SHELL"]`
+- Hook dir: `~/.config/ding/hook.{zsh,bash}`
+- RC guard: `# Added by ding` comment prevents duplicate installation
+- Inline hook script as fallback (Resources/ files may not be bundled in debug builds)
+- zsh: `add-zsh-hook preexec __ding_preexec` + `add-zsh-hook precmd __ding_precmd`
+- bash: `trap '__ding_debug' DEBUG` + `PROMPT_COMMAND="__ding_precmd;..."`
+- Notification is non-blocking: `ding notify ... 2>/dev/null & disown`
+- `__ding_hooks_loaded` guard prevents duplicate hook registration
+
+## Task 13: Relay Multi-Device KV Token Management (COMPLETED)
+
+### KV Data Model
+- Device list key: `devices:{apiKey}` → `{ devices: string[], registeredAt: string, lastSeenAt: string }`
+- Rate limit key: `ratelimit:{apiKey}:{Math.floor(Date.now()/60000)}` → count string, TTL 120s
+- JWT cache key: `apns-jwt` → JWT string, TTL 2700s (unchanged)
+
+### New Endpoints
+- POST /register: `{ device_token: string }` → stores in KV under API key
+- POST /deregister: `{ device_token: string }` → removes from KV
+- POST /push: fan-out to ALL devices for API key, returns `{ sent, failed, tokens_removed }`
+
+### Rate Limiting
+- 10 pushes per minute per API key
+- KV key uses minute bucket: `Math.floor(Date.now() / 60000)`
+- TTL 120s (2 minutes) to handle clock skew
+- 11th request returns 429
+
+### Auth
+- `extractApiKey()` helper: strips "Bearer " prefix from Authorization header
+- Same Bearer token used for all endpoints (register, deregister, push)
+- Legacy DEVICE_TOKEN env var still supported as fallback
+
+### BadDeviceToken Handling
+- Try production APNs first
+- On BadDeviceToken: try sandbox fallback
+- If sandbox also fails: mark token for removal, remove from KV after all sends

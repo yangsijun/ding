@@ -1,0 +1,22 @@
+=== Rate Limiting ===
+
+Rate limit: 10 pushes per minute per API key
+- Implemented in handlePush() function
+- KV key pattern: ratelimit:{apiKey}:{Math.floor(Date.now()/60000)}
+- Minute bucket calculated from current timestamp
+- TTL: 120 seconds (2 minutes) to handle clock skew
+
+Implementation Details:
+- Line 169: const rateLimitKey = `ratelimit:${apiKey}:${Math.floor(Date.now() / 60000)}`;
+- Line 170: const currentCount = parseInt(await env.STORE.get(rateLimitKey) ?? "0", 10);
+- Line 171: if (currentCount >= 10) { return 429 }
+- Line 173: await env.STORE.put(rateLimitKey, String(currentCount + 1), { expirationTtl: 120 });
+
+Behavior:
+- 1st-10th push in minute: returns 200 (success)
+- 11th push in minute: returns 429 (Too Many Requests)
+- After 120 seconds: counter resets for new minute bucket
+
+Error Response:
+- Status: 429
+- Body: {"error":"Rate limit exceeded. Max 10 pushes per minute."}

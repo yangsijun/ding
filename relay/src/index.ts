@@ -222,10 +222,11 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
   }
 
   // 6. Build APNs payload
+  const soundName = payload.status ? `ding_${payload.status}.caf` : "default";
   const apnsPayload = {
     aps: {
       alert: { title: payload.title, body: payload.body },
-      sound: "default",
+      sound: soundName,
     },
     ding: payload,
   };
@@ -327,10 +328,11 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     alertPayload.subtitle = payload.source;
   }
 
+  const soundName = payload.status ? `ding_${payload.status}.caf` : "default";
   const apnsPayload = {
     aps: {
       alert: alertPayload,
-      sound: "default",
+      sound: soundName,
     },
     ding: payload,
   };

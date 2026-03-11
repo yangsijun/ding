@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0623CE162AB1079ED01C854B /* NotificationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7161E6328C035D81BD4764FF /* NotificationStore.swift */; };
 		1FF9119E1B4DE7C1AFBA64BF /* NotificationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D059DEB9316BCC578A44FB8 /* NotificationRecord.swift */; };
+		30C81FF0FAD14F1B3BE34B00 /* NotificationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4054E25597D33E754294A9 /* NotificationDetailView.swift */; };
 		462AC1D33C89C62A967E7B96 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6F5513C5B3AE2E74FB73AF6 /* ContentView.swift */; };
 		8C8D3D7CCDF5ECDEEFD57542 /* NotificationPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D0D16AE9D43772334E538A /* NotificationPermissionManager.swift */; };
 		9CED453AA21AFEA00F2EA086 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866139D30C90ADFD7BA725EC /* QRCodeView.swift */; };
@@ -27,6 +28,7 @@
 		7161E6328C035D81BD4764FF /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
 		866139D30C90ADFD7BA725EC /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
 		8D059DEB9316BCC578A44FB8 /* NotificationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRecord.swift; sourceTree = "<group>"; };
+		8F4054E25597D33E754294A9 /* NotificationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDetailView.swift; sourceTree = "<group>"; };
 		A02A35ADD49169216C5B9F2B /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		C6F5513C5B3AE2E74FB73AF6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -35,6 +37,7 @@
 		2C054CFB9CAD0A0734CC8C9B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8F4054E25597D33E754294A9 /* NotificationDetailView.swift */,
 				5F03B669AD26ED447D8EA960 /* NotificationListView.swift */,
 				866139D30C90ADFD7BA725EC /* QRCodeView.swift */,
 			);
@@ -138,6 +141,7 @@
 				E2F6779DB86589F0B3E14A90 /* AppDelegate.swift in Sources */,
 				462AC1D33C89C62A967E7B96 /* ContentView.swift in Sources */,
 				D6FF0F56120026C19B695F83 /* DingApp.swift in Sources */,
+				30C81FF0FAD14F1B3BE34B00 /* NotificationDetailView.swift in Sources */,
 				FC93954B3E12A022C130BB44 /* NotificationListView.swift in Sources */,
 				8C8D3D7CCDF5ECDEEFD57542 /* NotificationPermissionManager.swift in Sources */,
 				1FF9119E1B4DE7C1AFBA64BF /* NotificationRecord.swift in Sources */,

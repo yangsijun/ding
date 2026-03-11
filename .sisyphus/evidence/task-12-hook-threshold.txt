@@ -1,0 +1,11 @@
+=== Hook Installation Test ===
+✓ Hook installed to /Users/sijun/.config/ding/hook.zsh
+✓ Source line added to /Users/sijun/.zshrc
+
+Restart your shell or run:
+  source /Users/sijun/.zshrc
+
+Commands longer than 2s will trigger a notification.
+
+Hook file exists: YES
+RC file updated: 1 occurrences

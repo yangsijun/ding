@@ -1,0 +1,15 @@
+=== Test 1: /health endpoint ===
+{"status":"ok","version":"1.0.0","timestamp":"2026-03-11T14:50:21.802Z"}
+HTTP Status: 200
+
+=== Test 2: /push without auth ===
+{"error":"Unauthorized"}
+HTTP Status: 401
+
+=== Test 3: /push with wrong auth ===
+{"error":"Unauthorized"}
+HTTP Status: 401
+
+=== Test 4: /push with correct auth but empty body ===
+{"error":"Missing required fields: title and body"}
+HTTP Status: 400

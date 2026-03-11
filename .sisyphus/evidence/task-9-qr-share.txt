@@ -1,0 +1,4 @@
+/Users/sijun/coding/ding/DingApp/DingApp/Views/QRCodeView.swift:                .interpolation(.none)
+/Users/sijun/coding/ding/DingApp/DingApp/Views/QRCodeView.swift:        let filter = CIFilter.qrCodeGenerator()
+/Users/sijun/coding/ding/DingApp/DingApp/ContentView.swift:                ShareLink(
+Build: ** BUILD SUCCEEDED **

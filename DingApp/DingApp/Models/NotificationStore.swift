@@ -4,7 +4,7 @@ import Foundation
 class NotificationStore: ObservableObject {
     @Published private(set) var records: [NotificationRecord] = []
 
-    private let maxRecords = 20
+    private let maxRecords = 50
     private let userDefaultsKey = "ding_notification_records"
 
     init() {
@@ -22,6 +22,11 @@ class NotificationStore: ObservableObject {
 
     func clearAll() {
         records = []
+        save()
+    }
+
+    func delete(record: NotificationRecord) {
+        records.removeAll { $0.id == record.id }
         save()
     }
 

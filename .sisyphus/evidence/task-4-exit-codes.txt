@@ -1,0 +1,7 @@
+hello
+⚠️  Notification failed: Configuration error: No API key stored. Run `ding setup <token>` first.
+Exit: 0
+⚠️  Notification failed: Configuration error: No API key stored. Run `ding setup <token>` first.
+Exit: 1
+⚠️  Notification failed: Configuration error: No API key stored. Run `ding setup <token>` first.
+Exit: 42

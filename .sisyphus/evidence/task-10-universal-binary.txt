@@ -1,0 +1,3 @@
+=== Universal Binary ===
+Architectures in the fat file: /Users/sijun/coding/ding/.build/release-artifacts/ding are: x86_64 arm64 
+0.1.0

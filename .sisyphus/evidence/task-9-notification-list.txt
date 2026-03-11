@@ -1,0 +1,11 @@
+/Users/sijun/coding/ding/DingApp/DingApp/DingApp.swift:    @StateObject private var notificationStore = NotificationStore()
+/Users/sijun/coding/ding/DingApp/DingApp/Models/NotificationStore.swift:class NotificationStore: ObservableObject {
+/Users/sijun/coding/ding/DingApp/DingApp/AppDelegate.swift:    var notificationStore: NotificationStore?
+/Users/sijun/coding/ding/DingApp/DingApp/AppDelegate.swift:        if let dingPayload = userInfo["ding"] as? [String: Any] {
+/Users/sijun/coding/ding/DingApp/DingApp/AppDelegate.swift:        if let dingPayload = userInfo["ding"] as? [String: Any] {
+/Users/sijun/coding/ding/DingApp/DingApp/Views/NotificationListView.swift:    @EnvironmentObject var notificationStore: NotificationStore
+/Users/sijun/coding/ding/DingApp/DingApp/Views/NotificationListView.swift:                                    .fill(statusColor(record.status))
+/Users/sijun/coding/ding/DingApp/DingApp/Views/NotificationListView.swift:    private func statusColor(_ status: String) -> Color {
+/Users/sijun/coding/ding/DingApp/DingApp/Views/NotificationListView.swift:        .environmentObject(NotificationStore())
+/Users/sijun/coding/ding/DingApp/DingApp/ContentView.swift:    @EnvironmentObject var notificationStore: NotificationStore
+/Users/sijun/coding/ding/DingApp/DingApp/ContentView.swift:        .environmentObject(NotificationStore())

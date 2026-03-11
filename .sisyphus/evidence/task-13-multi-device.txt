@@ -1,0 +1,35 @@
+=== Multi-Device Registration ===
+
+TypeScript compile: PASS
+- npx tsc --noEmit completed without errors
+
+POST /register endpoint: IMPLEMENTED
+- Validates Authorization header (Bearer token)
+- Parses device_token from JSON body
+- Stores device tokens in KV under key: devices:{apiKey}
+- Returns 401 if no auth header
+- Returns 400 if device_token < 32 chars
+- Returns 200 with device count on success
+
+POST /deregister endpoint: IMPLEMENTED
+- Validates Authorization header
+- Removes specific device token from KV
+- Returns 200 with remaining device count
+
+Fan-out to all devices: IMPLEMENTED
+- POST /push retrieves all devices for API key from KV
+- Sends APNs notification to each device in loop
+- Returns { sent, failed, tokens_removed } summary
+
+BadDeviceToken auto-deregistration: IMPLEMENTED
+- On BadDeviceToken response from APNs:
+  - Tries sandbox fallback
+  - If sandbox also fails: marks token for removal
+  - After all sends: removes bad tokens from KV
+  - Updates lastSeenAt timestamp
+
+Test Results:
+- GET /health: {"status":"ok","version":"2.0.0",...} ✓
+- POST /register (no auth): {"error":"Unauthorized"} ✓
+- POST /register (with auth): {"ok":true,"registered":1,...} ✓
+- POST /push (no devices): Attempts JWT generation (expected behavior) ✓

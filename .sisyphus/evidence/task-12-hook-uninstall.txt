@@ -1,0 +1,8 @@
+=== Hook Uninstall Test ===
+✓ Removed hook script: /Users/sijun/.config/ding/hook.zsh
+✓ Removed hook source line from: /Users/sijun/.zshrc
+
+Hook uninstalled. Restart your shell to apply changes.
+
+Hook file removed: YES
+RC line removed: 0 occurrences
