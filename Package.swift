@@ -23,5 +23,10 @@ let package = Package(
             ],
             path: "Sources/DingCore"
         ),
+        .testTarget(
+            name: "DingTests",
+            dependencies: ["DingCore"],
+            path: "Tests/DingTests"
+        ),
     ]
 )

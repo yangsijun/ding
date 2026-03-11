@@ -9,34 +9,58 @@ public struct StatusCommand: AsyncParsableCommand {
 
     public init() {}
 
+    // ANSI color helpers
+    private static let green = "\u{001B}[32m"
+    private static let red = "\u{001B}[31m"
+    private static let reset = "\u{001B}[0m"
+    private static let bold = "\u{001B}[1m"
+
+    private static func ok(_ text: String) -> String { "\(green)✓\(reset) \(text)" }
+    private static func fail(_ text: String) -> String { "\(red)✗\(reset) \(text)" }
+
     public func run() async throws {
-        print("ding status")
+        print("\(Self.bold)ding status\(Self.reset)")
         print("===========")
         print("")
 
         // Check device token
-        let tokenStatus: String
+        let tokenOK: Bool
         do {
             let token = try KeychainService.getDeviceToken()
             let masked = String(token.prefix(8)) + "..." + String(token.suffix(8))
-            tokenStatus = "✓ Stored (\(masked))"
+            print("Device token: \(Self.ok("Stored (\(masked))"))")
+            tokenOK = true
         } catch {
-            tokenStatus = "✗ Not configured"
+            print("Device token: \(Self.fail("Not configured"))")
+            tokenOK = false
         }
-        print("Device token: \(tokenStatus)")
 
         // Check API key
-        let keyStatus: String
+        let keyOK: Bool
         do {
             _ = try KeychainService.getAPIKey()
-            keyStatus = "✓ Stored"
+            print("API key:      \(Self.ok("Stored"))")
+            keyOK = true
         } catch {
-            keyStatus = "✗ Not configured"
+            print("API key:      \(Self.fail("Not configured"))")
+            keyOK = false
         }
-        print("API key:      \(keyStatus)")
 
-        // Check relay URL
+        // Show relay URL
         print("Relay URL:    \(Config.relayURL)")
+
+        // Show CLI version
+        print("CLI version:  \(Config.version)")
+
+        // Show last send timestamp
+        if let lastSend = UserDefaults.standard.object(forKey: "ding_last_send") as? Date {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.unitsStyle = .full
+            let relative = formatter.localizedString(for: lastSend, relativeTo: Date())
+            print("Last sent:    \(Self.ok(relative))")
+        } else {
+            print("Last sent:    (never)")
+        }
 
         // Check relay connectivity
         print("")
@@ -45,7 +69,7 @@ public struct StatusCommand: AsyncParsableCommand {
 
         do {
             guard let url = URL(string: Config.relayURL + "/health") else {
-                print("✗ Invalid relay URL")
+                print(Self.fail("Invalid relay URL"))
                 return
             }
             var request = URLRequest(url: url, timeoutInterval: 5)
@@ -54,26 +78,26 @@ public struct StatusCommand: AsyncParsableCommand {
             if let httpResponse = response as? HTTPURLResponse,
                httpResponse.statusCode == 200 {
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let status = json["status"] as? String {
-                    print("✓ \(status)")
+                   let version = json["version"] as? String {
+                    print(Self.ok("v\(version)"))
                 } else {
-                    print("✓ reachable")
+                    print(Self.ok("reachable"))
                 }
             } else {
-                print("✗ Unexpected response")
+                print(Self.fail("Unexpected response"))
             }
         } catch {
-            print("✗ \(error.localizedDescription)")
+            print(Self.fail(error.localizedDescription))
         }
 
         // Overall status
         print("")
-        let tokenOK = (try? KeychainService.getDeviceToken()) != nil
-        let keyOK = (try? KeychainService.getAPIKey()) != nil
         if tokenOK && keyOK {
-            print("Status: ✓ Ready")
+            let readyMsg = Self.ok("Ready")
+            print("Status: \(readyMsg)")
         } else {
-            print("Status: ✗ Not configured — run `ding setup <token>` first")
+            let notConfigMsg = Self.fail("Not configured — run `ding setup <token>` first")
+            print("Status: \(notConfigMsg)")
         }
     }
 }

@@ -25,5 +25,8 @@ public enum RelayClient {
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             throw DingError.networkError("Relay returned HTTP \(code)")
         }
+
+        // Store last successful send timestamp
+        UserDefaults.standard.set(Date(), forKey: "ding_last_send")
     }
 }
