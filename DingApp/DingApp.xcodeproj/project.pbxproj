@@ -30,8 +30,7 @@
 				0C1D187CA5E0D7668E550049 /* DingApp.swift */,
 				A02A35ADD49169216C5B9F2B /* TokenStore.swift */,
 			);
-			name = DingApp;
-			path = .;
+			path = DingApp;
 			sourceTree = "<group>";
 		};
 		450589952A3475822B3B79C9 = {

@@ -11,12 +11,12 @@ targets:
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: .
+      - path: DingApp
         includes:
           - "*.swift"
     resources:
-      - path: Info.plist
-      - path: DingApp.entitlements
+      - path: DingApp/Info.plist
+      - path: DingApp/DingApp.entitlements
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: dev.sijun.ding
       PRODUCT_NAME: DingApp
