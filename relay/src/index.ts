@@ -1,7 +1,6 @@
 /**
  * Ding APNs Relay - Cloudflare Worker
- * Receives POST /push with a JSON payload and forwards it as a
- * visible push notification via APNs HTTP/2.
+ * Multi-device KV token management with rate limiting.
  */
 
 interface Env {
@@ -9,9 +8,9 @@ interface Env {
   APPLE_KEYID: string;
   APPLE_TEAMID: string;
   APPLE_AUTHKEY: string;  // Base64-encoded .p8 key content
-  RELAY_SECRET: string;   // Shared secret for Bearer auth
+  RELAY_SECRET: string;   // Shared secret for Bearer auth (legacy single-device)
   APNS_TOPIC: string;     // iOS app bundle ID (e.g. dev.sijun.ding)
-  DEVICE_TOKEN: string;   // Target device token (Phase 1 single device)
+  DEVICE_TOKEN?: string;  // Optional fallback for single-device mode
 }
 
 interface PushPayload {
@@ -23,6 +22,12 @@ interface PushPayload {
   duration?: number;
   id?: string;
   timestamp?: string;
+}
+
+interface DeviceRecord {
+  devices: string[];
+  registeredAt: string;
+  lastSeenAt: string;
 }
 
 const CORS_HEADERS = {
@@ -40,7 +45,21 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/health" && request.method === "GET") {
-      return jsonResponse({ status: "ok", version: "1.0.0", timestamp: new Date().toISOString() });
+      return jsonResponse({ status: "ok", version: "2.0.0", timestamp: new Date().toISOString() });
+    }
+
+    if (url.pathname === "/register") {
+      if (request.method !== "POST") {
+        return new Response("Method Not Allowed", { status: 405, headers: CORS_HEADERS });
+      }
+      return handleRegister(request, env);
+    }
+
+    if (url.pathname === "/deregister") {
+      if (request.method !== "POST") {
+        return new Response("Method Not Allowed", { status: 405, headers: CORS_HEADERS });
+      }
+      return handleDeregister(request, env);
     }
 
     if (url.pathname === "/push") {
@@ -54,14 +73,107 @@ export default {
   },
 };
 
-async function handlePush(request: Request, env: Env): Promise<Response> {
-  // 1. Validate Authorization
-  const authHeader = request.headers.get("Authorization");
-  if (!authHeader || authHeader !== `Bearer ${env.RELAY_SECRET}`) {
+// ─── /register ───────────────────────────────────────────────────────────────
+
+async function handleRegister(request: Request, env: Env): Promise<Response> {
+  // Validate Authorization
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
-  // 2. Parse and validate body
+  // Parse body
+  let body: { device_token?: string; api_key?: string };
+  try {
+    body = await request.json() as { device_token?: string; api_key?: string };
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+
+  const deviceToken = body.device_token;
+  if (!deviceToken || typeof deviceToken !== "string" || deviceToken.length < 32) {
+    return jsonResponse({ error: "Missing or invalid device_token" }, 400);
+  }
+
+  // Load existing record for this API key
+  const kvKey = `devices:${apiKey}`;
+  const existing = await env.STORE.get<DeviceRecord>(kvKey, "json");
+  const record: DeviceRecord = existing ?? {
+    devices: [],
+    registeredAt: new Date().toISOString(),
+    lastSeenAt: new Date().toISOString(),
+  };
+
+  // Add device if not already registered
+  if (!record.devices.includes(deviceToken)) {
+    record.devices.push(deviceToken);
+  }
+  record.lastSeenAt = new Date().toISOString();
+
+  await env.STORE.put(kvKey, JSON.stringify(record));
+
+  return jsonResponse({
+    ok: true,
+    registered: record.devices.length,
+    message: `Device registered. ${record.devices.length} device(s) for this API key.`,
+  });
+}
+
+// ─── /deregister ─────────────────────────────────────────────────────────────
+
+async function handleDeregister(request: Request, env: Env): Promise<Response> {
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  let body: { device_token?: string };
+  try {
+    body = await request.json() as { device_token?: string };
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+
+  const deviceToken = body.device_token;
+  if (!deviceToken) {
+    return jsonResponse({ error: "Missing device_token" }, 400);
+  }
+
+  const kvKey = `devices:${apiKey}`;
+  const existing = await env.STORE.get<DeviceRecord>(kvKey, "json");
+  if (!existing) {
+    return jsonResponse({ ok: true, message: "No devices registered for this API key" });
+  }
+
+  existing.devices = existing.devices.filter((t) => t !== deviceToken);
+  existing.lastSeenAt = new Date().toISOString();
+  await env.STORE.put(kvKey, JSON.stringify(existing));
+
+  return jsonResponse({
+    ok: true,
+    remaining: existing.devices.length,
+    message: `Device deregistered. ${existing.devices.length} device(s) remaining.`,
+  });
+}
+
+// ─── /push ───────────────────────────────────────────────────────────────────
+
+async function handlePush(request: Request, env: Env): Promise<Response> {
+  // 1. Validate Authorization
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  // 2. Rate limiting: 10 pushes per minute per API key
+  const rateLimitKey = `ratelimit:${apiKey}:${Math.floor(Date.now() / 60000)}`;
+  const currentCount = parseInt(await env.STORE.get(rateLimitKey) ?? "0", 10);
+  if (currentCount >= 10) {
+    return jsonResponse({ error: "Rate limit exceeded. Max 10 pushes per minute." }, 429);
+  }
+  await env.STORE.put(rateLimitKey, String(currentCount + 1), { expirationTtl: 120 });
+
+  // 3. Parse and validate body
   let payload: PushPayload;
   try {
     payload = await request.json() as PushPayload;
@@ -73,7 +185,21 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
     return jsonResponse({ error: "Missing required fields: title and body" }, 400);
   }
 
-  // 3. Get or generate APNs JWT
+  // 4. Get device tokens for this API key
+  const kvKey = `devices:${apiKey}`;
+  const deviceRecord = await env.STORE.get<DeviceRecord>(kvKey, "json");
+
+  let deviceTokens: string[] = [];
+  if (deviceRecord && deviceRecord.devices.length > 0) {
+    deviceTokens = deviceRecord.devices;
+  } else if (env.DEVICE_TOKEN) {
+    // Fallback to single-device mode (legacy)
+    deviceTokens = [env.DEVICE_TOKEN];
+  } else {
+    return jsonResponse({ error: "No devices registered for this API key" }, 404);
+  }
+
+  // 5. Get or generate APNs JWT
   let jwt: string;
   try {
     jwt = await getOrCreateJWT(env);
@@ -81,7 +207,7 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
     return jsonResponse({ error: `JWT generation failed: ${String(err)}` }, 500);
   }
 
-  // 4. Build APNs payload
+  // 6. Build APNs payload
   const apnsPayload = {
     aps: {
       alert: { title: payload.title, body: payload.body },
@@ -90,27 +216,52 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
     ding: payload,
   };
 
-  // 5. Send to APNs (try production first, sandbox on BadDeviceToken)
-  const result = await sendToAPNs(env.DEVICE_TOKEN, apnsPayload, jwt, env.APNS_TOPIC, false);
+  // 7. Fan-out to all registered devices
+  let sent = 0;
+  let failed = 0;
+  let tokensRemoved = 0;
+  const tokensToRemove: string[] = [];
 
-  if (result.status === 200) {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
+  for (const token of deviceTokens) {
+    const result = await sendToAPNs(token, apnsPayload, jwt, env.APNS_TOPIC, false);
 
-  // Try sandbox on BadDeviceToken
-  if (result.reason === "BadDeviceToken") {
-    const sandboxResult = await sendToAPNs(env.DEVICE_TOKEN, apnsPayload, jwt, env.APNS_TOPIC, true);
-    if (sandboxResult.status === 200) {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    if (result.status === 200) {
+      sent++;
+    } else if (result.reason === "BadDeviceToken") {
+      // Try sandbox fallback
+      const sandboxResult = await sendToAPNs(token, apnsPayload, jwt, env.APNS_TOPIC, true);
+      if (sandboxResult.status === 200) {
+        sent++;
+      } else {
+        // Token is truly bad — mark for removal
+        tokensToRemove.push(token);
+        failed++;
+        tokensRemoved++;
+      }
+    } else {
+      failed++;
     }
-    return jsonResponse({ error: "BadDeviceToken", reason: sandboxResult.reason }, 400);
   }
 
-  if (result.status === 429) {
-    return jsonResponse({ error: "APNs rate limit exceeded" }, 429);
+  // 8. Remove bad tokens from KV
+  if (tokensToRemove.length > 0 && deviceRecord) {
+    deviceRecord.devices = deviceRecord.devices.filter((t) => !tokensToRemove.includes(t));
+    deviceRecord.lastSeenAt = new Date().toISOString();
+    await env.STORE.put(kvKey, JSON.stringify(deviceRecord));
   }
 
-  return jsonResponse({ error: "APNs error", reason: result.reason, status: result.status }, 502);
+  return jsonResponse({ sent, failed, tokens_removed: tokensRemoved });
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function extractApiKey(request: Request): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader) return null;
+  if (authHeader.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
+  return null;
 }
 
 async function sendToAPNs(
