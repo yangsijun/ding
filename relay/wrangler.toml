@@ -1,0 +1,16 @@
+name = "ding-relay"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[[kv_namespaces]]
+binding = "STORE"
+id = "PLACEHOLDER_KV_ID"
+
+[vars]
+# These should be set via `wrangler secret put` for production
+# APPLE_KEYID = "YOUR_KEY_ID"
+# APPLE_TEAMID = "YOUR_TEAM_ID"
+# APPLE_AUTHKEY = "base64-encoded .p8 key content"
+# RELAY_SECRET = "shared secret for Bearer auth"
+# APNS_TOPIC = "dev.sijun.ding"
+# DEVICE_TOKEN = "target device token"

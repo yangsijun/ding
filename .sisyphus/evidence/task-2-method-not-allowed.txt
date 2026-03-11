@@ -1,0 +1,13 @@
+Task 2: Cloudflare Workers Method Not Allowed Test
+===================================================
+
+Command: curl -s -X GET http://localhost:8787/push -w "\nStatus: %{http_code}\n"
+Response: Method Not Allowed
+Status: 405
+
+Status: ✅ PASS
+- GET /push returns 405 Method Not Allowed
+- Correct HTTP status code for unsupported method
+- Response body: "Method Not Allowed"
+
+Verification Date: 2026-03-11

@@ -1,0 +1,27 @@
+# Ding APNs Relay - Development Environment Variables
+# Copy this file to .dev.vars and fill in actual values for local development
+
+# Apple Push Notification service (APNs) credentials
+# APPLE_KEYID: The Key ID from your Apple Developer account (10-character alphanumeric)
+APPLE_KEYID=YOUR_KEY_ID
+
+# APPLE_TEAMID: Your Apple Team ID (10-character alphanumeric)
+APPLE_TEAMID=YOUR_TEAM_ID
+
+# APPLE_AUTHKEY: The base64-encoded contents of your .p8 private key file
+# Download from Apple Developer > Certificates, Identifiers & Profiles > Keys
+# The .p8 file contains: -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY-----
+APPLE_AUTHKEY=base64-encoded-p8-key-content
+
+# RELAY_SECRET: Shared secret for Bearer token authentication
+# Used to validate incoming requests from the CLI
+RELAY_SECRET=your-shared-secret-here
+
+# APNS_TOPIC: The bundle ID of your iOS app
+# Must match the bundle ID configured in Apple Developer account
+APNS_TOPIC=dev.sijun.ding
+
+# DEVICE_TOKEN: The APNs device token for the target device
+# Obtained from the iOS app's didFinishLaunchingWithOptions
+# Format: 64-character hexadecimal string
+DEVICE_TOKEN=your-device-token-here
