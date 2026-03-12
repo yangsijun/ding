@@ -38,11 +38,37 @@ public struct SetupCommand: AsyncParsableCommand {
 
         print("✓ Device token stored")
         print("✓ API key stored: \(key)")
-        print("")
-        print("Next steps:")
-        print("  1. Set RELAY_SECRET=\(key) in your Cloudflare Worker secrets")
-        print("  2. Set DEVICE_TOKEN=\(deviceToken) in your Cloudflare Worker secrets")
-        print("  3. Run `ding test` to verify the connection")
+
+        // Register device with relay
+        do {
+            try await registerWithRelay(deviceToken: deviceToken, apiKey: key)
+            print("✓ Device registered with relay")
+            print("")
+            print("Run `ding test` to verify the connection.")
+        } catch {
+            print("⚠️  Relay registration failed: \(error.localizedDescription)")
+            print("")
+            print("You can retry with: ding setup \(deviceToken) --api-key \(key)")
+        }
+    }
+
+    private func registerWithRelay(deviceToken: String, apiKey: String) async throws {
+        guard let url = URL(string: Config.relayURL + "/register") else {
+            throw DingError.networkError("Invalid relay URL")
+        }
+
+        var request = URLRequest(url: url, timeoutInterval: 10)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["device_token": deviceToken])
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw DingError.networkError("Relay returned HTTP \(code)")
+        }
     }
 
     private func generateAPIKey() -> String {

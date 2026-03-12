@@ -5,6 +5,7 @@ struct ContentView: View {
     @EnvironmentObject var notificationStore: NotificationStore
     @StateObject private var permissionManager = NotificationPermissionManager()
     @State private var copied = false
+    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
     var body: some View {
         TabView {
@@ -18,31 +19,43 @@ struct ContentView: View {
                     Label("Notifications", systemImage: "bell.fill")
                 }
         }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            NotificationOnBoarding {
+                UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                showOnboarding = false
+            }
+        }
         .task {
             await permissionManager.checkStatus()
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task {
+                await permissionManager.checkStatus()
+                await notificationStore.syncDeliveredNotifications()
+            }
+        }
     }
-
-    // MARK: - Token Tab
-
     private var tokenTab: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                Spacer()
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Permission warning banner
+                    if permissionManager.authorizationStatus == .denied {
+                        permissionWarningBanner
+                    }
 
-                if !tokenStore.deviceToken.isEmpty {
-                    tokenReceivedView
-                } else if let error = tokenStore.registrationError {
-                    errorView(error: error)
-                } else if permissionManager.authorizationStatus == .denied {
-                    deniedView
-                } else {
-                    requestPermissionView
+                    if !tokenStore.deviceToken.isEmpty {
+                        tokenReceivedView
+                    } else if let error = tokenStore.registrationError {
+                        errorView(error: error)
+                    } else if permissionManager.authorizationStatus == .denied {
+                        deniedView
+                    } else {
+                        awaitingTokenView
+                    }
                 }
-
-                Spacer()
+                .padding()
             }
-            .padding()
             .navigationTitle("ding")
         }
     }
@@ -50,13 +63,12 @@ struct ContentView: View {
     // MARK: - Token Received
 
     private var tokenReceivedView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Label("Notifications enabled", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
                 .font(.subheadline)
 
-            QRCodeView(token: tokenStore.deviceToken)
-
+            // Token display
             Text(tokenStore.deviceToken)
                 .font(.system(.caption2, design: .monospaced))
                 .textSelection(.enabled)
@@ -65,6 +77,7 @@ struct ContentView: View {
                 .cornerRadius(8)
                 .lineLimit(3)
 
+            // Copy / Share
             HStack(spacing: 12) {
                 Button {
                     UIPasteboard.general.string = tokenStore.deviceToken
@@ -89,7 +102,59 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
             }
+
+            // Setup guide
+            setupGuideView
         }
+    }
+
+    private var setupGuideView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Setup")
+                .font(.headline)
+
+            guideStep(number: 1, text: "Install ding CLI")
+            codeBlock("brew install sijun/tap/ding")
+
+            guideStep(number: 2, text: "Copy the token above and run:")
+            codeBlock("ding setup <token>")
+
+            guideStep(number: 3, text: "Verify the connection:")
+            codeBlock("ding test")
+
+            guideStep(number: 4, text: "Auto-notify on long commands:")
+            codeBlock("ding install-hook")
+            Text("Commands over 30s will trigger a notification.\nCustomize with: ding install-hook -t 10")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 28)
+        }
+        .padding(16)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    private func guideStep(number: Int, text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text("\(number)")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: 20, height: 20)
+                .background(Color.accentColor)
+                .clipShape(Circle())
+            Text(text)
+                .font(.subheadline)
+        }
+    }
+
+    private func codeBlock(_ code: String) -> some View {
+        Text(code)
+            .font(.system(.caption, design: .monospaced))
+            .padding(8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.systemGray5))
+            .cornerRadius(6)
+            .padding(.leading, 28)
     }
 
     // MARK: - Error State
@@ -142,23 +207,57 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Request Permission
+    // MARK: - Awaiting Token
 
-    private var requestPermissionView: some View {
+    private var awaitingTokenView: some View {
         VStack(spacing: 12) {
-            Image(systemName: "bell.badge")
+            Image(systemName: "hourglass")
                 .font(.largeTitle)
                 .foregroundStyle(.blue)
 
-            Button {
-                Task {
-                    await permissionManager.requestPermission()
-                }
-            } label: {
-                Text("Tap to grant notification permission")
-            }
-            .buttonStyle(.borderedProminent)
+            Text("Waiting for Token")
+                .font(.headline)
+
+            Text("Notification permission granted.\nDevice token will appear shortly.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
+    }
+
+    // MARK: - Permission Warning Banner
+
+    private var permissionWarningBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Notifications Disabled")
+                    .font(.subheadline.weight(.semibold))
+                Text("You won't receive alerts until notifications are enabled.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button {
+                permissionManager.openSettings()
+            } label: {
+                Text("Settings")
+                    .font(.caption.weight(.medium))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .padding(12)
+        .background(Color(.systemOrange).opacity(0.1))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 

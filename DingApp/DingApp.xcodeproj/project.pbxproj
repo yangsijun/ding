@@ -14,8 +14,8 @@
 		6F4D99E6B4DF21826D8A1EF7 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F860C87E6F0296CD138D62 /* NotificationController.swift */; };
 		8C8D3D7CCDF5ECDEEFD57542 /* NotificationPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D0D16AE9D43772334E538A /* NotificationPermissionManager.swift */; };
 		8FD336DCADFFF866A4D5F7F9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5694B983A675BDFB780F1548 /* ContentView.swift */; };
-		9CED453AA21AFEA00F2EA086 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866139D30C90ADFD7BA725EC /* QRCodeView.swift */; };
 		9D924BEE277443E49FE05AA3 /* DingWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5607C402739072E2BC4DD5 /* DingWatchApp.swift */; };
+		A8244E830B9E465BF9825F26 /* NotificationOnBoarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5109ABBBB2DC5D43F9F39CD3 /* NotificationOnBoarding.swift */; };
 		C65CCC859C4FEB6ADFECAFF2 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487BBA0A4F61DDFFEFEA73B2 /* HapticManager.swift */; };
 		D6FF0F56120026C19B695F83 /* DingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D187CA5E0D7668E550049 /* DingApp.swift */; };
 		E2F6779DB86589F0B3E14A90 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */; };
@@ -29,13 +29,13 @@
 		0D11CE79C10CAB531446EEB4 /* ExtensionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionDelegate.swift; sourceTree = "<group>"; };
 		203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		487BBA0A4F61DDFFEFEA73B2 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		51D3800B04E2C874A84627AD /* DingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5109ABBBB2DC5D43F9F39CD3 /* NotificationOnBoarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationOnBoarding.swift; sourceTree = "<group>"; };
+		51D3800B04E2C874A84627AD /* DingApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5694B983A675BDFB780F1548 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5F03B669AD26ED447D8EA960 /* NotificationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationListView.swift; sourceTree = "<group>"; };
 		64D0D16AE9D43772334E538A /* NotificationPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionManager.swift; sourceTree = "<group>"; };
 		6C5607C402739072E2BC4DD5 /* DingWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DingWatchApp.swift; sourceTree = "<group>"; };
 		7161E6328C035D81BD4764FF /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
-		866139D30C90ADFD7BA725EC /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
 		86F860C87E6F0296CD138D62 /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
 		8D059DEB9316BCC578A44FB8 /* NotificationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRecord.swift; sourceTree = "<group>"; };
 		8F4054E25597D33E754294A9 /* NotificationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDetailView.swift; sourceTree = "<group>"; };
@@ -50,7 +50,7 @@
 			children = (
 				8F4054E25597D33E754294A9 /* NotificationDetailView.swift */,
 				5F03B669AD26ED447D8EA960 /* NotificationListView.swift */,
-				866139D30C90ADFD7BA725EC /* QRCodeView.swift */,
+				5109ABBBB2DC5D43F9F39CD3 /* NotificationOnBoarding.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -153,8 +153,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 9999A389F61D66CFC0E467DF /* Build configuration list for PBXProject "DingApp" */;
 			developmentRegion = en;
@@ -186,10 +184,10 @@
 				D6FF0F56120026C19B695F83 /* DingApp.swift in Sources */,
 				30C81FF0FAD14F1B3BE34B00 /* NotificationDetailView.swift in Sources */,
 				FC93954B3E12A022C130BB44 /* NotificationListView.swift in Sources */,
+				A8244E830B9E465BF9825F26 /* NotificationOnBoarding.swift in Sources */,
 				8C8D3D7CCDF5ECDEEFD57542 /* NotificationPermissionManager.swift in Sources */,
 				1FF9119E1B4DE7C1AFBA64BF /* NotificationRecord.swift in Sources */,
 				0623CE162AB1079ED01C854B /* NotificationStore.swift in Sources */,
-				9CED453AA21AFEA00F2EA086 /* QRCodeView.swift in Sources */,
 				F4791D8B1D55F5EF1CABAE3E /* TokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -213,6 +211,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.sijun.ding.watchkitapp;
 				PRODUCT_NAME = DingWatch;
@@ -292,6 +291,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				INFOPLIST_FILE = DingApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -367,6 +367,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				INFOPLIST_FILE = DingApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -385,6 +386,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.sijun.ding.watchkitapp;
 				PRODUCT_NAME = DingWatch;

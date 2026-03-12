@@ -4,10 +4,14 @@ import ArgumentParser
 public struct InstallHookCommand: AsyncParsableCommand {
     public static let configuration = CommandConfiguration(
         commandName: "install-hook",
-        abstract: "Install shell hook to auto-notify on long-running commands"
+        abstract: "Install shell hook to auto-notify on long-running commands",
+        discussion: """
+        Automatically sends a push notification when a command takes longer than
+        the threshold (default: 30 seconds).
+        """
     )
 
-    @Option(name: .long, help: "Minimum command duration in seconds to trigger notification (default: 30)")
+    @Option(name: .shortAndLong, help: "Seconds a command must run before triggering a notification (default: 30)")
     public var threshold: Int = 30
 
     public init() {}
@@ -28,29 +32,51 @@ public struct InstallHookCommand: AsyncParsableCommand {
         // Make hook script executable
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hookFile.path)
 
-        // Append source line to RC file (if not already present)
-        let sourceLine = "\n# Added by ding\nexport DING_THRESHOLD=\(threshold)\nsource \"\(hookFile.path)\"\n"
+        // Update or append source line in RC file
         let guardComment = "# Added by ding"
+        let sourceBlock = "\n# Added by ding\nexport DING_THRESHOLD=\(threshold)\nsource \"\(hookFile.path)\"\n"
 
         let rcContent = (try? String(contentsOf: rcFile, encoding: .utf8)) ?? ""
-        if !rcContent.contains(guardComment) {
+        if rcContent.contains(guardComment) {
+            // Already installed — update threshold and hook in place
+            let lines = rcContent.components(separatedBy: "\n")
+            var newLines: [String] = []
+            var i = 0
+            while i < lines.count {
+                if lines[i].contains(guardComment) {
+                    // Skip old block (comment + export + source = 3 lines after comment)
+                    newLines.append(lines[i])
+                    i += 1
+                    // Replace export line
+                    if i < lines.count && lines[i].hasPrefix("export DING_THRESHOLD=") {
+                        newLines.append("export DING_THRESHOLD=\(threshold)")
+                        i += 1
+                    }
+                    // Keep source line as-is
+                    if i < lines.count && lines[i].hasPrefix("source ") {
+                        newLines.append(lines[i])
+                        i += 1
+                    }
+                } else {
+                    newLines.append(lines[i])
+                    i += 1
+                }
+            }
+            try newLines.joined(separator: "\n").write(to: rcFile, atomically: true, encoding: .utf8)
+            print("✓ Hook updated (threshold: \(threshold)s)")
+        } else {
             let handle = try FileHandle(forWritingTo: rcFile)
             handle.seekToEndOfFile()
-            handle.write(Data(sourceLine.utf8))
+            handle.write(Data(sourceBlock.utf8))
             handle.closeFile()
-        } else {
-            print("Hook already installed in \(rcFile.path)")
+            print("✓ Hook installed (threshold: \(threshold)s)")
         }
 
-        print("✓ Hook installed to \(hookFile.path)")
-        print("✓ Source line added to \(rcFile.path)")
+        print("✓ Hook script: \(hookFile.path)")
         print("")
         print("Restart your shell or run:")
         print("  source \(rcFile.path)")
-        print("")
-        print("Commands longer than \(threshold)s will trigger a notification.")
     }
-
     private func detectShell() -> String {
         let shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
         if shell.hasSuffix("bash") { return "bash" }
@@ -118,11 +144,14 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 fi
 
                 local status_flag="success"
+                local msg="Done: ${__ding_last_cmd}"
                 if [[ $exit_code -ne 0 ]]; then
                     status_flag="failure"
+                    msg="Failed: ${__ding_last_cmd}"
                 fi
+                local body=$(printf '%s\n%s' "$PWD" "$msg")
 
-                ding notify "${__ding_last_cmd}" --status "$status_flag" --title "ding" 2>/dev/null &
+                ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &
                 disown
 
                 __ding_cmd_start=0
@@ -166,11 +195,14 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 fi
 
                 local status_flag="success"
+                local msg="Done: ${__ding_last_cmd}"
                 if [[ $exit_code -ne 0 ]]; then
                     status_flag="failure"
+                    msg="Failed: ${__ding_last_cmd}"
                 fi
+                local body=$(printf '%s\n%s' "$PWD" "$msg")
 
-                ding notify "${__ding_last_cmd}" --status "$status_flag" --title "ding" 2>/dev/null &
+                ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &
                 disown
 
                 __ding_cmd_start=0

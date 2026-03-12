@@ -46,8 +46,7 @@ public struct StatusCommand: AsyncParsableCommand {
             keyOK = false
         }
 
-        // Show relay URL
-        print("Relay URL:    \(Config.relayURL)")
+        // CLI version
 
         // Show CLI version
         print("CLI version:  \(Config.version)")
@@ -60,6 +59,25 @@ public struct StatusCommand: AsyncParsableCommand {
             print("Last sent:    \(Self.ok(relative))")
         } else {
             print("Last sent:    (never)")
+        }
+
+        // Check shell hook
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let hookFile = home.appendingPathComponent(".config/ding/hook.zsh")
+        let rcFile = home.appendingPathComponent(".zshrc")
+        if FileManager.default.fileExists(atPath: hookFile.path) {
+            // Read threshold from .zshrc
+            let rcContent = (try? String(contentsOf: rcFile, encoding: .utf8)) ?? ""
+            let thresholdValue: String
+            if let line = rcContent.components(separatedBy: "\n")
+                .first(where: { $0.hasPrefix("export DING_THRESHOLD=") }) {
+                thresholdValue = String(line.dropFirst("export DING_THRESHOLD=".count)) + "s"
+            } else {
+                thresholdValue = "30s (default)"
+            }
+            print("Shell hook:   \(Self.ok("Installed (threshold: \(thresholdValue))"))")
+        } else {
+            print("Shell hook:   \(Self.fail("Not installed — run `ding install-hook`"))")
         }
 
         // Check relay connectivity

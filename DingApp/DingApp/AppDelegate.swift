@@ -11,14 +11,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
 
-        UNUserNotificationCenter.current().requestAuthorization(
-            options: [.alert, .sound, .badge]
-        ) { granted, error in
-            if let error = error {
-                print("Authorization error: \(error)")
-                return
-            }
-            if granted {
+        // Check if permission was already granted (e.g. after onboarding)
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            if settings.authorizationStatus == .authorized {
                 DispatchQueue.main.async {
                     application.registerForRemoteNotifications()
                 }
@@ -74,6 +69,30 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             }
         }
         completionHandler([.banner, .sound, .badge])
+    }
+
+    // Handle notification tap (background/terminated → user tapped)
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let dingPayload = userInfo["ding"] as? [String: Any] {
+            let title = dingPayload["title"] as? String ?? response.notification.request.content.title
+            let body = dingPayload["body"] as? String ?? response.notification.request.content.body
+            let status = dingPayload["status"] as? String ?? "info"
+            Task { @MainActor in
+                self.notificationStore?.add(title: title, body: body, status: status)
+            }
+        } else {
+            let title = response.notification.request.content.title
+            let body = response.notification.request.content.body
+            Task { @MainActor in
+                self.notificationStore?.add(title: title, body: body, status: "info")
+            }
+        }
+        completionHandler()
     }
 
     // Handle background/terminated notification receipt
