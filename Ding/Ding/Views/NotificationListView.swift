@@ -114,6 +114,7 @@ struct NotificationListView: View {
     }
 }
 
+#if DEBUG
 #Preview("With Records") {
     NotificationListView()
         .environmentObject(NotificationStore.preview())
@@ -123,3 +124,4 @@ struct NotificationListView: View {
     NotificationListView()
         .environmentObject(NotificationStore.preview(records: []))
 }
+#endif
