@@ -28,12 +28,21 @@ public struct HookCommand: AsyncParsableCommand {
 
         // Claude Code fields
         let transcript_path: String?
+
+        // oh-my-opencode fields
+        let hook_source: String?
     }
 
     // MARK: - Run
 
     public func run() async throws {
         let input = readStdinJSON()
+
+        // Skip if OpenCode plugin handles notifications
+        if input?.hook_source == "opencode-plugin" {
+            return
+        }
+
         let projectName = extractProjectName(from: input)
         let (title, body, status) = formatNotification(input: input, projectName: projectName)
 

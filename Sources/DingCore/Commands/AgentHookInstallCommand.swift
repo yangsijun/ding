@@ -27,13 +27,27 @@ public struct AgentHookInstallCommand: AsyncParsableCommand {
                     continue
                 }
 
-                let hadDingHooks = !AgentHookManager.detectDingHookEvents(in: config).isEmpty
-                config = try AgentHookManager.installHooks(into: config, for: agent)
-                try AgentHookManager.writeConfig(config, for: agent)
+                switch agent {
+                case .opencode:
+                    let hadPlugin = AgentHookManager.isOpenCodePluginInstalled(in: config)
+                    config = try AgentHookManager.installOpenCodePlugin(into: config)
+                    try AgentHookManager.writeConfig(config, for: agent)
 
-                let events = agent.hookDefinitions.map(\.event).joined(separator: ", ")
-                let verb = hadDingHooks ? "updated" : "installed"
-                print("✓ \(agent.displayName) — hooks \(verb) (\(events))")
+                    let pluginDir = FileManager.default.homeDirectoryForCurrentUser
+                        .appendingPathComponent(".config/opencode/plugins/opencode-ding")
+                    try AgentHookManager.installOpenCodePluginFiles(to: pluginDir)
+
+                    print("✓ \(agent.displayName) — plugin \(hadPlugin ? "updated" : "installed")")
+
+                default:
+                    let hadDingHooks = !AgentHookManager.detectDingHookEvents(in: config).isEmpty
+                    config = try AgentHookManager.installHooks(into: config, for: agent)
+                    try AgentHookManager.writeConfig(config, for: agent)
+
+                    let events = agent.hookDefinitions.map(\.event).joined(separator: ", ")
+                    let verb = hadDingHooks ? "updated" : "installed"
+                    print("✓ \(agent.displayName) — hooks \(verb) (\(events))")
+                }
             } catch {
                 print("✗ \(agent.displayName) — \(error.localizedDescription)")
             }

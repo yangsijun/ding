@@ -5,6 +5,83 @@ import Foundation
 @Suite("AgentHookManager Tests")
 struct AgentHookManagerTests {
 
+    // MARK: - OpenCode agent
+
+    @Test("OpenCode display name")
+    func opencodeDisplayName() {
+        #expect(Agent.opencode.displayName == "OpenCode")
+    }
+
+    @Test("OpenCode config dir name")
+    func opencodeConfigDirName() {
+        #expect(Agent.opencode.configDirName == ".config/opencode")
+    }
+
+    @Test("OpenCode has no hook definitions")
+    func opencodeHookDefs() {
+        #expect(Agent.opencode.hookDefinitions.isEmpty)
+    }
+
+    @Test("Install OpenCode plugin into config without existing plugins")
+    func installOpencodeEmpty() throws {
+        let input: [String: Any] = ["$schema": "https://opencode.ai/config.json"]
+        let result = try AgentHookManager.installOpenCodePlugin(into: input)
+        let plugins = result["plugin"] as! [String]
+        #expect(plugins.contains("./plugins/opencode-ding"))
+    }
+
+    @Test("Install OpenCode plugin preserves existing plugins")
+    func installOpencodePreserves() throws {
+        let input: [String: Any] = [
+            "plugin": ["oh-my-opencode@latest", "opencode-antigravity-auth@1.6.0"]
+        ]
+        let result = try AgentHookManager.installOpenCodePlugin(into: input)
+        let plugins = result["plugin"] as! [String]
+        #expect(plugins.count == 3)
+        #expect(plugins.contains("oh-my-opencode@latest"))
+        #expect(plugins.contains("./plugins/opencode-ding"))
+    }
+
+    @Test("Install OpenCode plugin is idempotent")
+    func installOpencodeIdempotent() throws {
+        let input: [String: Any] = [
+            "plugin": ["oh-my-opencode@latest", "./plugins/opencode-ding"]
+        ]
+        let result = try AgentHookManager.installOpenCodePlugin(into: input)
+        let plugins = result["plugin"] as! [String]
+        #expect(plugins.count == 2)
+    }
+
+    @Test("Uninstall OpenCode plugin removes entry")
+    func uninstallOpencode() throws {
+        let input: [String: Any] = [
+            "plugin": ["oh-my-opencode@latest", "./plugins/opencode-ding"]
+        ]
+        let result = try AgentHookManager.uninstallOpenCodePlugin(from: input)
+        let plugins = result["plugin"] as! [String]
+        #expect(plugins.count == 1)
+        #expect(!plugins.contains { ($0 as String).contains("opencode-ding") })
+    }
+
+    @Test("Uninstall OpenCode plugin removes plugin key if empty")
+    func uninstallOpencodeEmptyArray() throws {
+        let input: [String: Any] = ["plugin": ["./plugins/opencode-ding"]]
+        let result = try AgentHookManager.uninstallOpenCodePlugin(from: input)
+        #expect(result["plugin"] == nil)
+    }
+
+    @Test("Detect OpenCode plugin installed")
+    func detectOpencodePlugin() {
+        let config: [String: Any] = ["plugin": ["oh-my-opencode@latest", "./plugins/opencode-ding"]]
+        #expect(AgentHookManager.isOpenCodePluginInstalled(in: config) == true)
+    }
+
+    @Test("Detect OpenCode plugin not installed")
+    func detectOpencodePluginMissing() {
+        let config: [String: Any] = ["plugin": ["oh-my-opencode@latest"]]
+        #expect(AgentHookManager.isOpenCodePluginInstalled(in: config) == false)
+    }
+
     // MARK: - Agent enum
 
     @Test("Agent display names")

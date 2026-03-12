@@ -27,15 +27,33 @@ public struct AgentHookUninstallCommand: AsyncParsableCommand {
                     continue
                 }
 
-                let hadDingHooks = !AgentHookManager.detectDingHookEvents(in: config).isEmpty
-                guard hadDingHooks else {
-                    print("✓ \(agent.displayName) — no ding hooks to remove")
-                    continue
-                }
+                switch agent {
+                case .opencode:
+                    let hadPlugin = AgentHookManager.isOpenCodePluginInstalled(in: config)
+                    guard hadPlugin else {
+                        print("✓ \(agent.displayName) — no plugin to remove")
+                        continue
+                    }
+                    config = try AgentHookManager.uninstallOpenCodePlugin(from: config)
+                    try AgentHookManager.writeConfig(config, for: agent)
 
-                config = try AgentHookManager.uninstallHooks(from: config, for: agent)
-                try AgentHookManager.writeConfig(config, for: agent)
-                print("✓ \(agent.displayName) — hooks removed")
+                    let pluginDir = FileManager.default.homeDirectoryForCurrentUser
+                        .appendingPathComponent(".config/opencode/plugins/opencode-ding")
+                    try? FileManager.default.removeItem(at: pluginDir)
+
+                    print("✓ \(agent.displayName) — plugin removed")
+
+                default:
+                    let hadDingHooks = !AgentHookManager.detectDingHookEvents(in: config).isEmpty
+                    guard hadDingHooks else {
+                        print("✓ \(agent.displayName) — no ding hooks to remove")
+                        continue
+                    }
+
+                    config = try AgentHookManager.uninstallHooks(from: config, for: agent)
+                    try AgentHookManager.writeConfig(config, for: agent)
+                    print("✓ \(agent.displayName) — hooks removed")
+                }
             } catch {
                 print("✗ \(agent.displayName) — \(error.localizedDescription)")
             }

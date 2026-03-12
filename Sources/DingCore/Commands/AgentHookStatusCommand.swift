@@ -27,11 +27,21 @@ public struct AgentHookStatusCommand: AsyncParsableCommand {
                     continue
                 }
 
-                let events = AgentHookManager.detectDingHookEvents(in: config)
-                if events.isEmpty {
-                    print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.red)✗\(Self.reset) not configured")
-                } else {
-                    print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.green)✓\(Self.reset) \(events.joined(separator: ", "))")
+                switch agent {
+                case .opencode:
+                    if AgentHookManager.isOpenCodePluginInstalled(in: config) {
+                        print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.green)✓\(Self.reset) plugin installed")
+                    } else {
+                        print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.red)✗\(Self.reset) not configured")
+                    }
+
+                default:
+                    let events = AgentHookManager.detectDingHookEvents(in: config)
+                    if events.isEmpty {
+                        print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.red)✗\(Self.reset) not configured")
+                    } else {
+                        print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.green)✓\(Self.reset) \(events.joined(separator: ", "))")
+                    }
                 }
             } catch {
                 print("\(agent.displayName.padding(toLength: 13, withPad: " ", startingAt: 0))\(Self.red)✗\(Self.reset) \(error.localizedDescription)")

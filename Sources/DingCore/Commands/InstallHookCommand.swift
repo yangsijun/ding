@@ -151,8 +151,7 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 fi
                 local body=$(printf '%s\n%s' "$PWD" "$msg")
 
-                ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &
-                disown
+                (ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &)
 
                 __ding_cmd_start=0
             }
@@ -202,8 +201,7 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 fi
                 local body=$(printf '%s\n%s' "$PWD" "$msg")
 
-                ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &
-                disown
+                (ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &)
 
                 __ding_cmd_start=0
             }

@@ -6,11 +6,13 @@ import ArgumentParser
 public enum Agent: String, CaseIterable, ExpressibleByArgument {
     case claude
     case gemini
+    case opencode
 
     public var displayName: String {
         switch self {
         case .claude: return "Claude Code"
         case .gemini: return "Gemini CLI"
+        case .opencode: return "OpenCode"
         }
     }
 
@@ -18,12 +20,20 @@ public enum Agent: String, CaseIterable, ExpressibleByArgument {
         switch self {
         case .claude: return ".claude"
         case .gemini: return ".gemini"
+        case .opencode: return ".config/opencode"
+        }
+    }
+
+    public var configFileName: String {
+        switch self {
+        case .claude, .gemini: return "settings.json"
+        case .opencode: return "opencode.json"
         }
     }
 
     public var configFilePath: URL {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        return home.appendingPathComponent(configDirName).appendingPathComponent("settings.json")
+        return home.appendingPathComponent(configDirName).appendingPathComponent(configFileName)
     }
 
     public var isDetected: Bool {
@@ -48,6 +58,8 @@ public enum Agent: String, CaseIterable, ExpressibleByArgument {
                 HookDefinition(event: "AfterAgent", command: "ding hook --source gemini --event AfterAgent", async: false),
                 HookDefinition(event: "Notification", command: "ding hook --source gemini --event Notification", async: false),
             ]
+        case .opencode:
+            return []
         }
     }
 }
@@ -78,6 +90,8 @@ public enum AgentHookManager {
                 hooks = installClaudeEvent(hooks, event: def.event, hookEntry: hookEntry)
             case .gemini:
                 hooks = installGeminiEvent(hooks, event: def.event, hookEntry: hookEntry)
+            case .opencode:
+                break  // OpenCode uses plugins, not hooks
             }
         }
 
@@ -217,5 +231,128 @@ public enum AgentHookManager {
     public static func writeConfig(_ config: [String: Any], for agent: Agent) throws {
         let data = try JSONSerialization.data(withJSONObject: config, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: agent.configFilePath, options: .atomic)
+    }
+
+    // MARK: - OpenCode Plugin Management
+
+    private static let opencodePluginPath = "./plugins/opencode-ding"
+
+    public static func installOpenCodePlugin(into config: [String: Any]) throws -> [String: Any] {
+        var result = config
+        var plugins = (result["plugin"] as? [String]) ?? []
+        if !plugins.contains(where: { $0.contains("opencode-ding") }) {
+            plugins.append(opencodePluginPath)
+        }
+        result["plugin"] = plugins
+        return result
+    }
+
+    public static func uninstallOpenCodePlugin(from config: [String: Any]) throws -> [String: Any] {
+        var result = config
+        guard var plugins = result["plugin"] as? [String] else { return result }
+        plugins.removeAll { $0.contains("opencode-ding") }
+        if plugins.isEmpty {
+            result.removeValue(forKey: "plugin")
+        } else {
+            result["plugin"] = plugins
+        }
+        return result
+    }
+
+    public static func isOpenCodePluginInstalled(in config: [String: Any]) -> Bool {
+        guard let plugins = config["plugin"] as? [String] else { return false }
+        return plugins.contains { $0.contains("opencode-ding") }
+    }
+
+    public static func installOpenCodePluginFiles(to directory: URL) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let packageJSON = """
+        {
+          "name": "opencode-ding",
+          "version": "0.1.0",
+          "description": "Ding push notifications for OpenCode",
+          "main": "index.ts",
+          "dependencies": {
+            "@opencode-ai/plugin": "^1.2.24"
+          }
+        }
+        """
+        try packageJSON.write(to: directory.appendingPathComponent("package.json"),
+                              atomically: true, encoding: .utf8)
+
+        let indexTS = """
+        import type { Plugin } from "@opencode-ai/plugin"
+        import { spawn } from "child_process"
+
+        const plugin: Plugin = async (input) => {
+          let lastPrompt: string | null = null
+          let lastSessionID: string | null = null
+
+          function truncate(text: string, maxLength: number): string {
+            const cleaned = text.replace(/\\n/g, " ").trim()
+            if (cleaned.length <= maxLength) return cleaned
+            return cleaned.substring(0, maxLength) + "\\u2026"
+          }
+
+          function sendNotification(body: string, status: string) {
+            const proc = spawn("ding", ["notify", body, "--title", "ding \\u00b7 OpenCode", "--status", status], {
+              stdio: "ignore",
+              detached: true,
+            })
+            proc.unref()
+          }
+
+          return {
+            "chat.message": async (_input, output) => {
+              const textParts = output.parts.filter((p) => p.type === "text")
+              if (textParts.length > 0) {
+                const text = textParts
+                  .map((p) => ("text" in p ? p.text : ""))
+                  .join(" ")
+                if (text.trim()) {
+                  lastPrompt = text.trim()
+                  lastSessionID = _input.sessionID
+                }
+              }
+            },
+
+            event: async ({ event }) => {
+              if (event.type === "session.idle") {
+                const sessionID = event.properties.sessionID
+                if (sessionID !== lastSessionID) return
+
+                const cwd = input.project?.path || input.directory || process.cwd()
+                const summary = lastPrompt ? `Done: ${truncate(lastPrompt, 80)}` : "Task completed"
+                const body = `${cwd}\\n${summary}`
+
+                sendNotification(body, "success")
+
+                lastPrompt = null
+                lastSessionID = null
+              }
+
+              if (event.type === "session.error") {
+                const cwd = input.project?.path || input.directory || process.cwd()
+                const error = event.properties.error
+                const msg =
+                  error && "data" in error && typeof (error as any).data?.message === "string"
+                    ? (error as any).data.message
+                    : "Unknown error"
+                const body = `${cwd}\\nFailed: ${truncate(msg, 80)}`
+
+                sendNotification(body, "failure")
+
+                lastPrompt = null
+                lastSessionID = null
+              }
+            },
+          }
+        }
+
+        export default plugin
+        """
+        try indexTS.write(to: directory.appendingPathComponent("index.ts"),
+                          atomically: true, encoding: .utf8)
     }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "opencode-ding",
+  "version": "0.1.0",
+  "description": "Ding push notifications for OpenCode",
+  "main": "index.ts",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.2.24"
+  }
+}
