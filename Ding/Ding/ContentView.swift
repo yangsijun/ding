@@ -65,7 +65,7 @@ struct ContentView: View {
                 }
                 .padding()
             }
-            .navigationTitle("ding")
+            .navigationTitle("Ding")
         }
     }
 

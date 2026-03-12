@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		ED11000C2F63000000D856A0 /* DingNotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = ED1100012F63000000D856A0 /* DingNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		ED22000C2F63000000D856A0 /* DingWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = ED2200012F63000000D856A0 /* DingWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EDC505092F62ED5E00D856A0 /* ding_icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = EDC504FC2F62ED5E00D856A0 /* ding_icon.icon */; };
 /* End PBXBuildFile section */
 
@@ -19,13 +18,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = ED1100022F63000000D856A0;
 			remoteInfo = DingNotificationService;
-		};
-		ED2200092F63000000D856A0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = EDC5048F2F62EA6F00D856A0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = ED2200022F63000000D856A0;
-			remoteInfo = DingWatch;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -47,7 +39,6 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				ED22000C2F63000000D856A0 /* DingWatch.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -56,7 +47,6 @@
 
 /* Begin PBXFileReference section */
 		ED1100012F63000000D856A0 /* DingNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DingNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED2200012F63000000D856A0 /* DingWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DingWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDC504972F62EA6F00D856A0 /* Ding.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ding.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDC504FC2F62ED5E00D856A0 /* ding_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = ding_icon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -72,22 +62,10 @@
 			path = DingNotificationService;
 			sourceTree = "<group>";
 		};
-		EDC505052F62ED5E00D856A0 /* DingWatch */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DingWatch;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		ED1100042F63000000D856A0 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		ED2200042F63000000D856A0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -111,7 +89,6 @@
 				EDC504982F62EA6F00D856A0 /* Products */,
 				EDC504FC2F62ED5E00D856A0 /* ding_icon.icon */,
 				EDC504FF2F62ED5E00D856A0 /* DingNotificationService */,
-				EDC505052F62ED5E00D856A0 /* DingWatch */,
 			);
 			sourceTree = "<group>";
 		};
@@ -120,7 +97,6 @@
 			children = (
 				EDC504972F62EA6F00D856A0 /* Ding.app */,
 				ED1100012F63000000D856A0 /* DingNotificationService.appex */,
-				ED2200012F63000000D856A0 /* DingWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -148,26 +124,6 @@
 			productReference = ED1100012F63000000D856A0 /* DingNotificationService.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		ED2200022F63000000D856A0 /* DingWatch */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = ED2200082F63000000D856A0 /* Build configuration list for PBXNativeTarget "DingWatch" */;
-			buildPhases = (
-				ED2200032F63000000D856A0 /* Sources */,
-				ED2200042F63000000D856A0 /* Frameworks */,
-				ED2200052F63000000D856A0 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				EDC505052F62ED5E00D856A0 /* DingWatch */,
-			);
-			name = DingWatch;
-			productName = DingWatch;
-			productReference = ED2200012F63000000D856A0 /* DingWatch.app */;
-			productType = "com.apple.product-type.application";
-		};
 		EDC504962F62EA6F00D856A0 /* Ding */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EDC504A22F62EA7000D856A0 /* Build configuration list for PBXNativeTarget "Ding" */;
@@ -182,7 +138,6 @@
 			);
 			dependencies = (
 				ED11000A2F63000000D856A0 /* PBXTargetDependency */,
-				ED22000A2F63000000D856A0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				EDC504992F62EA6F00D856A0 /* Ding */,
@@ -207,9 +162,6 @@
 					ED1100022F63000000D856A0 = {
 						CreatedOnToolsVersion = 26.3;
 					};
-					ED2200022F63000000D856A0 = {
-						CreatedOnToolsVersion = 26.3;
-					};
 					EDC504962F62EA6F00D856A0 = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -231,20 +183,12 @@
 			targets = (
 				EDC504962F62EA6F00D856A0 /* Ding */,
 				ED1100022F63000000D856A0 /* DingNotificationService */,
-				ED2200022F63000000D856A0 /* DingWatch */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		ED1100052F63000000D856A0 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		ED2200052F63000000D856A0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -269,13 +213,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		ED2200032F63000000D856A0 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		EDC504932F62EA6F00D856A0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -290,11 +227,6 @@
 			isa = PBXTargetDependency;
 			target = ED1100022F63000000D856A0 /* DingNotificationService */;
 			targetProxy = ED1100092F63000000D856A0 /* PBXContainerItemProxy */;
-		};
-		ED22000A2F63000000D856A0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = ED2200022F63000000D856A0 /* DingWatch */;
-			targetProxy = ED2200092F63000000D856A0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -344,58 +276,6 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		ED2200062F63000000D856A0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9ZMW52M7L5;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.sijun.ding;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.sijun.ding.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
-			};
-			name = Debug;
-		};
-		ED2200072F63000000D856A0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9ZMW52M7L5;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = dev.sijun.ding;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.sijun.ding.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -532,6 +412,8 @@
 				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Ding;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -570,6 +452,8 @@
 				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Ding;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -604,15 +488,6 @@
 			buildConfigurations = (
 				ED1100062F63000000D856A0 /* Debug */,
 				ED1100072F63000000D856A0 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		ED2200082F63000000D856A0 /* Build configuration list for PBXNativeTarget "DingWatch" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				ED2200062F63000000D856A0 /* Debug */,
-				ED2200072F63000000D856A0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
