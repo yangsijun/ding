@@ -4,16 +4,38 @@ import UserNotifications
 @MainActor
 class NotificationStore: ObservableObject {
     @Published private(set) var records: [NotificationRecord] = []
+    @Published var saveEnabled: Bool {
+        didSet {
+            sharedDefaults?.set(saveEnabled, forKey: saveEnabledKey)
+        }
+    }
 
     private let maxRecords = 50
-    private let userDefaultsKey = "ding_notification_records"
+    private let recordsKey = "ding_notification_records"
+    private let saveEnabledKey = "ding_save_notifications_enabled"
+    private static let appGroupID = "group.dev.sijun.ding"
+
+    private let sharedDefaults: UserDefaults?
 
     init() {
+        self.sharedDefaults = UserDefaults(suiteName: Self.appGroupID)
+        self.saveEnabled = sharedDefaults?.object(forKey: saveEnabledKey) as? Bool ?? true
         load()
+        migrateFromStandardDefaults()
     }
 
     func add(title: String, body: String, status: String) {
+        guard saveEnabled else { return }
         let record = NotificationRecord(title: title, body: body, status: status)
+
+        // Deduplicate: skip if same title+body within 2 seconds
+        if let latest = records.first,
+           latest.title == record.title,
+           latest.body == record.body,
+           abs(latest.timestamp.timeIntervalSince(record.timestamp)) < 2 {
+            return
+        }
+
         records.insert(record, at: 0)
         if records.count > maxRecords {
             records = Array(records.prefix(maxRecords))
@@ -31,8 +53,16 @@ class NotificationStore: ObservableObject {
         save()
     }
 
+    /// Load records from shared storage (includes NSE-saved records)
+    func reloadFromSharedStorage() {
+        load()
+    }
+
     /// Sync delivered notifications from notification center (catches background arrivals)
     func syncDeliveredNotifications() async {
+        // First, reload from shared storage (NSE may have saved new records)
+        load()
+
         let delivered = await UNUserNotificationCenter.current().deliveredNotifications()
         var added = false
         for notification in delivered {
@@ -71,20 +101,65 @@ class NotificationStore: ObservableObject {
         }
     }
 
+    // MARK: - Persistence (shared App Group UserDefaults)
+
     private func save() {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        if let data = try? encoder.encode(records) {
-            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+        let dicts: [[String: String]] = records.map { record in
+            [
+                "id": record.id.uuidString,
+                "title": record.title,
+                "body": record.body,
+                "status": record.status,
+                "timestamp": ISO8601DateFormatter().string(from: record.timestamp)
+            ]
+        }
+        if let data = try? JSONSerialization.data(withJSONObject: dicts) {
+            sharedDefaults?.set(data, forKey: recordsKey)
         }
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else { return }
+        guard let data = sharedDefaults?.data(forKey: recordsKey),
+              let dicts = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] else {
+            return
+        }
+
+        let formatter = ISO8601DateFormatter()
+        records = dicts.compactMap { dict in
+            guard let idStr = dict["id"], let id = UUID(uuidString: idStr),
+                  let title = dict["title"],
+                  let body = dict["body"],
+                  let status = dict["status"],
+                  let tsStr = dict["timestamp"], let ts = formatter.date(from: tsStr) else {
+                return nil
+            }
+            return NotificationRecord(id: id, title: title, body: body, status: status, timestamp: ts)
+        }
+    }
+
+    /// One-time migration from standard UserDefaults to shared App Group
+    private func migrateFromStandardDefaults() {
+        let oldKey = "ding_notification_records"
+        guard let oldData = UserDefaults.standard.data(forKey: oldKey) else { return }
+
+        // Try to decode old Codable format
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        if let loaded = try? decoder.decode([NotificationRecord].self, from: data) {
-            records = loaded
+        if let oldRecords = try? decoder.decode([NotificationRecord].self, from: oldData) {
+            // Merge: add old records that don't already exist
+            let existingIDs = Set(records.map { $0.id })
+            let newRecords = oldRecords.filter { !existingIDs.contains($0.id) }
+            if !newRecords.isEmpty {
+                records.append(contentsOf: newRecords)
+                records.sort { $0.timestamp > $1.timestamp }
+                if records.count > maxRecords {
+                    records = Array(records.prefix(maxRecords))
+                }
+                save()
+            }
         }
+
+        // Remove old data
+        UserDefaults.standard.removeObject(forKey: oldKey)
     }
 }

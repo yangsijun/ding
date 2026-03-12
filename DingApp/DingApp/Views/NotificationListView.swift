@@ -53,11 +53,21 @@ struct NotificationListView: View {
             }
             .navigationTitle("Notifications")
             .toolbar {
-                if !notificationStore.records.isEmpty {
-                    Button("Clear All") {
-                        notificationStore.clearAll()
+                ToolbarItem(placement: .topBarLeading) {
+                    Toggle(isOn: $notificationStore.saveEnabled) {
+                        Image(systemName: notificationStore.saveEnabled ? "tray.and.arrow.down.fill" : "tray.and.arrow.down")
                     }
-                    .foregroundStyle(.red)
+                    .toggleStyle(.button)
+                    .tint(notificationStore.saveEnabled ? .accentColor : .secondary)
+                    .help(notificationStore.saveEnabled ? "Saving enabled" : "Saving disabled")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !notificationStore.records.isEmpty {
+                        Button("Clear All") {
+                            notificationStore.clearAll()
+                        }
+                        .foregroundStyle(.red)
+                    }
                 }
             }
         }
