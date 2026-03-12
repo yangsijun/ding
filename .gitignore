@@ -1,0 +1,23 @@
+# Swift
+.build/
+.swiftpm/
+DerivedData/
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+
+# macOS
+.DS_Store
+
+# Node.js
+node_modules/
+
+# Wrangler (Cloudflare Workers local state)
+.wrangler/
+
+# Vite
+.vite/
+
+# Environment (secrets)
+.dev.vars
