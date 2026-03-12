@@ -29,7 +29,10 @@ __ding_precmd() {
         status_flag="failure"
     fi
 
-    ding notify "${__ding_last_cmd}" --status "$status_flag" --title "ding" 2>/dev/null &
+    local short_pwd="$PWD"
+    [[ "$short_pwd" = "$HOME"/* ]] && short_pwd="~${short_pwd#"$HOME"}"
+    local body=$(printf '%s\n%s' "$short_pwd" "${__ding_last_cmd}")
+    ding notify "$body" --status "$status_flag" --title "ding · Terminal" 2>/dev/null &
     disown
 
     __ding_cmd_start=0
