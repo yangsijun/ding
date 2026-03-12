@@ -1,22 +1,78 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
-public struct InstallHookCommand: AsyncParsableCommand {
+public struct HookInstallCommand: AsyncParsableCommand {
     public static let configuration = CommandConfiguration(
-        commandName: "install-hook",
-        abstract: "Install shell hook to auto-notify on long-running commands",
+        commandName: "install",
+        abstract: "Install notification hooks",
         discussion: """
-        Automatically sends a push notification when a command takes longer than
-        the threshold (default: 30 seconds).
+        Without arguments: installs shell hook (auto-notify on long-running commands).
+        With agent name: installs hook into AI coding tool config.
+
+        Examples:
+          ding hook install              # shell hook (threshold: 30s)
+          ding hook install -t 10        # shell hook (threshold: 10s)
+          ding hook install claude       # Claude Code hook
+          ding hook install gemini       # Gemini CLI hook
+          ding hook install opencode     # OpenCode plugin
         """
     )
 
-    @Option(name: .shortAndLong, help: "Seconds a command must run before triggering a notification (default: 30)")
-    public var threshold: Int = 30
+    @Argument(help: "AI coding tool to configure (claude, gemini, opencode). Omit for shell hook.")
+    var agent: Agent?
+
+    @Option(name: .shortAndLong, help: "Shell hook: seconds before triggering notification (default: 30)")
+    var threshold: Int = 30
 
     public init() {}
 
     public func run() async throws {
+        if let agent {
+            try await installAgentHook(agent)
+        } else {
+            try await installShellHook()
+        }
+    }
+
+    // MARK: - Agent Hook
+
+    private func installAgentHook(_ agent: Agent) async throws {
+        guard agent.isDetected else {
+            print("✗ \(agent.displayName) — not found (\(agent.configFilePath.path) missing)")
+            return
+        }
+
+        guard var config = try AgentHookManager.readConfig(for: agent) else {
+            print("✗ \(agent.displayName) — could not read config")
+            return
+        }
+
+        switch agent {
+        case .opencode:
+            let hadPlugin = AgentHookManager.isOpenCodePluginInstalled(in: config)
+            config = try AgentHookManager.installOpenCodePlugin(into: config)
+            try AgentHookManager.writeConfig(config, for: agent)
+
+            let pluginDir = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(".config/opencode/plugins/opencode-ding")
+            try AgentHookManager.installOpenCodePluginFiles(to: pluginDir)
+
+            print("✓ \(agent.displayName) — plugin \(hadPlugin ? "updated" : "installed")")
+
+        default:
+            let hadDingHooks = !AgentHookManager.detectDingHookEvents(in: config).isEmpty
+            config = try AgentHookManager.installHooks(into: config, for: agent)
+            try AgentHookManager.writeConfig(config, for: agent)
+
+            let events = agent.hookDefinitions.map(\.event).joined(separator: ", ")
+            let verb = hadDingHooks ? "updated" : "installed"
+            print("✓ \(agent.displayName) — hooks \(verb) (\(events))")
+        }
+    }
+
+    // MARK: - Shell Hook
+
+    private func installShellHook() async throws {
         let shell = detectShell()
         let hookDir = hookDirectory()
         let hookFile = hookDir.appendingPathComponent("hook.\(shell)")
@@ -38,21 +94,17 @@ public struct InstallHookCommand: AsyncParsableCommand {
 
         let rcContent = (try? String(contentsOf: rcFile, encoding: .utf8)) ?? ""
         if rcContent.contains(guardComment) {
-            // Already installed — update threshold and hook in place
             let lines = rcContent.components(separatedBy: "\n")
             var newLines: [String] = []
             var i = 0
             while i < lines.count {
                 if lines[i].contains(guardComment) {
-                    // Skip old block (comment + export + source = 3 lines after comment)
                     newLines.append(lines[i])
                     i += 1
-                    // Replace export line
                     if i < lines.count && lines[i].hasPrefix("export DING_THRESHOLD=") {
                         newLines.append("export DING_THRESHOLD=\(threshold)")
                         i += 1
                     }
-                    // Keep source line as-is
                     if i < lines.count && lines[i].hasPrefix("source ") {
                         newLines.append(lines[i])
                         i += 1
@@ -63,13 +115,13 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 }
             }
             try newLines.joined(separator: "\n").write(to: rcFile, atomically: true, encoding: .utf8)
-            print("✓ Hook updated (threshold: \(threshold)s)")
+            print("✓ Shell hook updated (threshold: \(threshold)s)")
         } else {
             let handle = try FileHandle(forWritingTo: rcFile)
             handle.seekToEndOfFile()
             handle.write(Data(sourceBlock.utf8))
             handle.closeFile()
-            print("✓ Hook installed (threshold: \(threshold)s)")
+            print("✓ Shell hook installed (threshold: \(threshold)s)")
         }
 
         print("✓ Hook script: \(hookFile.path)")
@@ -77,6 +129,9 @@ public struct InstallHookCommand: AsyncParsableCommand {
         print("Restart your shell or run:")
         print("  source \(rcFile.path)")
     }
+
+    // MARK: - Shell Helpers
+
     private func detectShell() -> String {
         let shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
         if shell.hasSuffix("bash") { return "bash" }
@@ -97,9 +152,7 @@ public struct InstallHookCommand: AsyncParsableCommand {
     }
 
     private func hookScript(for shell: String, threshold: Int) -> String {
-        // Read embedded hook script from Resources
         let resourceName = "hook.\(shell)"
-        // Try to find the hook script relative to the binary
         let binaryDir = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
         let resourcePaths = [
             binaryDir.appendingPathComponent("../share/ding/\(resourceName)").standardized,
@@ -110,7 +163,6 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 return content.replacingOccurrences(of: "${DING_THRESHOLD:-30}", with: "${DING_THRESHOLD:-\(threshold)}")
             }
         }
-        // Fallback: inline the hook script
         return inlineHookScript(for: shell, threshold: threshold)
     }
 
@@ -118,8 +170,8 @@ public struct InstallHookCommand: AsyncParsableCommand {
         if shell == "bash" {
             return """
             # ding shell hook for bash
-            # Installed by: ding install-hook
-            # Remove with: ding uninstall-hook
+            # Installed by: ding hook install
+            # Remove with: ding hook uninstall
 
             __ding_threshold=${DING_THRESHOLD:-\(threshold)}
             __ding_cmd_start=0
@@ -144,12 +196,12 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 fi
 
                 local status_flag="success"
-                local msg="Done: ${__ding_last_cmd}"
                 if [[ $exit_code -ne 0 ]]; then
                     status_flag="failure"
-                    msg="Failed: ${__ding_last_cmd}"
                 fi
-                local body=$(printf '%s\n%s' "$PWD" "$msg")
+                local short_pwd="$PWD"
+                [[ "$short_pwd" = "$HOME"/* ]] && short_pwd="~${short_pwd#"$HOME"}"
+                local body=$(printf '%s\\n%s' "$short_pwd" "${__ding_last_cmd}")
 
                 (ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &)
 
@@ -165,8 +217,8 @@ public struct InstallHookCommand: AsyncParsableCommand {
         } else {
             return """
             # ding shell hook for zsh
-            # Installed by: ding install-hook
-            # Remove with: ding uninstall-hook
+            # Installed by: ding hook install
+            # Remove with: ding hook uninstall
 
             __ding_threshold=${DING_THRESHOLD:-\(threshold)}
             __ding_cmd_start=0
@@ -194,12 +246,12 @@ public struct InstallHookCommand: AsyncParsableCommand {
                 fi
 
                 local status_flag="success"
-                local msg="Done: ${__ding_last_cmd}"
                 if [[ $exit_code -ne 0 ]]; then
                     status_flag="failure"
-                    msg="Failed: ${__ding_last_cmd}"
                 fi
-                local body=$(printf '%s\n%s' "$PWD" "$msg")
+                local short_pwd="$PWD"
+                [[ "$short_pwd" = "$HOME"/* ]] && short_pwd="~${short_pwd#"$HOME"}"
+                local body=$(printf '%s\\n%s' "$short_pwd" "${__ding_last_cmd}")
 
                 (ding notify "$body" --status "$status_flag" --title "ding · Terminal" >/dev/null 2>&1 &)
 
