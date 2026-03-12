@@ -1,11 +1,11 @@
 # homebrew-tap
 
-Homebrew Tap for [ding](https://github.com/sijunyang/ding) — a CLI tool that sends push notifications to iPhone/Apple Watch when terminal commands complete.
+Homebrew Tap for [ding](https://github.com/yangsijun/ding) — a CLI tool that sends push notifications to iPhone/Apple Watch when terminal commands complete.
 
 ## Installation
 
 ```bash
-brew tap sijunyang/tap
+brew tap yangsijun/tap
 brew install ding
 ```
 

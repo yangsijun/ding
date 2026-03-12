@@ -1,7 +1,7 @@
 class Ding < Formula
   desc "CLI tool that sends push notifications to iPhone/Apple Watch when terminal commands complete"
-  homepage "https://github.com/sijunyang/ding"
-  url "https://github.com/sijunyang/ding/releases/download/v0.1.0/ding-0.1.0-macos.zip"
+  homepage "https://github.com/yangsijun/ding"
+  url "https://github.com/yangsijun/ding/releases/download/v0.1.0/ding-0.1.0-macos.zip"
   sha256 "PLACEHOLDER_SHA256_UPDATE_AFTER_RELEASE"
   license "MIT"
   version "0.1.0"
