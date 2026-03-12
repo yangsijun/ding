@@ -50,13 +50,13 @@ public enum Agent: String, CaseIterable, ExpressibleByArgument {
         switch self {
         case .claude:
             return [
-                HookDefinition(event: "Stop", command: "ding hook --source claude --event Stop", async: true),
-                HookDefinition(event: "Notification", command: "ding hook --source claude --event Notification", async: true),
+                HookDefinition(event: "Stop", command: "ding _dispatch --source claude --event Stop", async: true),
+                HookDefinition(event: "Notification", command: "ding _dispatch --source claude --event Notification", async: true),
             ]
         case .gemini:
             return [
-                HookDefinition(event: "AfterAgent", command: "ding hook --source gemini --event AfterAgent", async: false),
-                HookDefinition(event: "Notification", command: "ding hook --source gemini --event Notification", async: false),
+                HookDefinition(event: "AfterAgent", command: "ding _dispatch --source gemini --event AfterAgent", async: false),
+                HookDefinition(event: "Notification", command: "ding _dispatch --source gemini --event Notification", async: false),
             ]
         case .opencode:
             return []
@@ -68,7 +68,7 @@ public enum Agent: String, CaseIterable, ExpressibleByArgument {
 
 public enum AgentHookManager {
 
-    private static let dingMarker = "ding hook"
+    private static let dingMarker = "ding _dispatch"
 
     // MARK: - Install
 
@@ -287,16 +287,23 @@ public enum AgentHookManager {
 
         const plugin: Plugin = async (input) => {
           let lastPrompt: string | null = null
-          let lastSessionID: string | null = null
+          let mainSessionID: string | null = null
+          let lastUserMessageID: string | null = null
 
           function truncate(text: string, maxLength: number): string {
             const cleaned = text.replace(/\\n/g, " ").trim()
             if (cleaned.length <= maxLength) return cleaned
-            return cleaned.substring(0, maxLength) + "\\u2026"
+            return cleaned.substring(0, maxLength) + "\u{2026}"
+          }
+
+          function shortenHome(dir: string): string {
+            const home = process.env.HOME || process.env.USERPROFILE || ""
+            if (home && dir.startsWith(home)) return "~" + dir.slice(home.length)
+            return dir
           }
 
           function sendNotification(body: string, status: string) {
-            const proc = spawn("ding", ["notify", body, "--title", "ding \\u00b7 OpenCode", "--status", status], {
+            const proc = spawn("ding", ["notify", body, "--title", "ding \u{00b7} OpenCode", "--status", status], {
               stdio: "ignore",
               detached: true,
             })
@@ -304,36 +311,49 @@ public enum AgentHookManager {
           }
 
           return {
-            "chat.message": async (_input, output) => {
-              const textParts = output.parts.filter((p) => p.type === "text")
-              if (textParts.length > 0) {
-                const text = textParts
-                  .map((p) => ("text" in p ? p.text : ""))
-                  .join(" ")
-                if (text.trim()) {
-                  lastPrompt = text.trim()
-                  lastSessionID = _input.sessionID
+            event: async ({ event }) => {
+              // Track user prompts via message events
+              if (event.type === "message.updated") {
+                const msg = (event.properties as any).info
+                if (msg?.role === "user") {
+                  mainSessionID = msg.sessionID
+                  lastUserMessageID = msg.id
                 }
               }
-            },
 
-            event: async ({ event }) => {
+              // Capture user's typed text from part updates
+              if (event.type === "message.part.updated") {
+                const part = (event.properties as any).part
+                if (
+                  part?.type === "text" &&
+                  !part.synthetic &&
+                  part.messageID === lastUserMessageID
+                ) {
+                  const text = (part.text || "").replace(/\\n/g, " ").trim()
+                  if (text) {
+                    lastPrompt = text
+                  }
+                }
+              }
+
               if (event.type === "session.idle") {
                 const sessionID = event.properties.sessionID
-                if (sessionID !== lastSessionID) return
+                if (mainSessionID && sessionID !== mainSessionID) return
 
-                const cwd = input.project?.path || input.directory || process.cwd()
+                const cwd = shortenHome(input.project?.path || input.directory || process.cwd())
                 const summary = lastPrompt ? `Done: ${truncate(lastPrompt, 80)}` : "Task completed"
                 const body = `${cwd}\\n${summary}`
 
                 sendNotification(body, "success")
 
                 lastPrompt = null
-                lastSessionID = null
               }
 
               if (event.type === "session.error") {
-                const cwd = input.project?.path || input.directory || process.cwd()
+                const sessionID = (event.properties as any).sessionID
+                if (mainSessionID && sessionID !== mainSessionID) return
+
+                const cwd = shortenHome(input.project?.path || input.directory || process.cwd())
                 const error = event.properties.error
                 const msg =
                   error && "data" in error && typeof (error as any).data?.message === "string"
@@ -342,9 +362,18 @@ public enum AgentHookManager {
                 const body = `${cwd}\\nFailed: ${truncate(msg, 80)}`
 
                 sendNotification(body, "failure")
+              }
 
-                lastPrompt = null
-                lastSessionID = null
+              if (event.type === "question.asked") {
+                const props = event.properties as { sessionID?: string; questions?: Array<{ question?: string; header?: string }> }
+                const sessionID = props.sessionID
+                if (mainSessionID && sessionID !== mainSessionID) return
+
+                const cwd = shortenHome(input.project?.path || input.directory || process.cwd())
+                const question = props.questions?.[0]?.header || props.questions?.[0]?.question || "Needs your input"
+                const body = `${cwd}\\nAsked: ${truncate(question, 80)}`
+
+                sendNotification(body, "warning")
               }
             },
           }
