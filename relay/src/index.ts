@@ -227,6 +227,7 @@ async function handlePush(request: Request, env: Env): Promise<Response> {
     aps: {
       alert: { title: payload.title, body: payload.body },
       sound: soundName,
+      "mutable-content": 1,
     },
     ding: payload,
   };
@@ -333,6 +334,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     aps: {
       alert: alertPayload,
       sound: soundName,
+      "mutable-content": 1,
     },
     ding: payload,
   };
