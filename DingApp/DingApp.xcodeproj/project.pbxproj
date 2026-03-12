@@ -16,6 +16,7 @@
 		8FD336DCADFFF866A4D5F7F9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5694B983A675BDFB780F1548 /* ContentView.swift */; };
 		9D924BEE277443E49FE05AA3 /* DingWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5607C402739072E2BC4DD5 /* DingWatchApp.swift */; };
 		A8244E830B9E465BF9825F26 /* NotificationOnBoarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5109ABBBB2DC5D43F9F39CD3 /* NotificationOnBoarding.swift */; };
+		B2BBA5F35B26C1ABA8FDC7C6 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36A6EA74B5ECACAF36BC11A4 /* NotificationService.swift */; };
 		C65CCC859C4FEB6ADFECAFF2 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487BBA0A4F61DDFFEFEA73B2 /* HapticManager.swift */; };
 		D6FF0F56120026C19B695F83 /* DingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D187CA5E0D7668E550049 /* DingApp.swift */; };
 		E2F6779DB86589F0B3E14A90 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */; };
@@ -27,7 +28,9 @@
 /* Begin PBXFileReference section */
 		0C1D187CA5E0D7668E550049 /* DingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DingApp.swift; sourceTree = "<group>"; };
 		0D11CE79C10CAB531446EEB4 /* ExtensionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionDelegate.swift; sourceTree = "<group>"; };
+		0FF5C8E2FD479ABE37A81B82 /* DingNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DingNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		203CB6EC43EE322023E4CCD9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		36A6EA74B5ECACAF36BC11A4 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		487BBA0A4F61DDFFEFEA73B2 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		5109ABBBB2DC5D43F9F39CD3 /* NotificationOnBoarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationOnBoarding.swift; sourceTree = "<group>"; };
 		51D3800B04E2C874A84627AD /* DingApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,6 +45,7 @@
 		A02A35ADD49169216C5B9F2B /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		C6F5513C5B3AE2E74FB73AF6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DF4C8B17419039EA892C3A6B /* DingWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DingWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDC5048D2F62E81100D856A0 /* ding_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = ding_icon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -73,7 +77,9 @@
 			isa = PBXGroup;
 			children = (
 				3445249FF76BE4C9456862D1 /* DingApp */,
+				C2D3C0F8D63215A7BAB11A7E /* DingNotificationService */,
 				800F9B231A07D2F4B12FA527 /* DingWatch */,
+				EDC5048D2F62E81100D856A0 /* ding_icon.icon */,
 				8555277449C9A0D52C11519E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,9 +109,18 @@
 			isa = PBXGroup;
 			children = (
 				51D3800B04E2C874A84627AD /* DingApp.app */,
+				0FF5C8E2FD479ABE37A81B82 /* DingNotificationService.appex */,
 				DF4C8B17419039EA892C3A6B /* DingWatch.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C2D3C0F8D63215A7BAB11A7E /* DingNotificationService */ = {
+			isa = PBXGroup;
+			children = (
+				36A6EA74B5ECACAF36BC11A4 /* NotificationService.swift */,
+			);
+			path = DingNotificationService;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -145,6 +160,23 @@
 			productReference = DF4C8B17419039EA892C3A6B /* DingWatch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AB73020240BF912B14867618 /* DingNotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE30CA31233A7816D9627F83 /* Build configuration list for PBXNativeTarget "DingNotificationService" */;
+			buildPhases = (
+				03966EC53811EA67C3F78E43 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DingNotificationService;
+			packageProductDependencies = (
+			);
+			productName = DingNotificationService;
+			productReference = 0FF5C8E2FD479ABE37A81B82 /* DingNotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -169,12 +201,21 @@
 			projectRoot = "";
 			targets = (
 				128008732AD709CFA06A8F84 /* DingApp */,
+				AB73020240BF912B14867618 /* DingNotificationService */,
 				50268DD2C1DBC7F3C4841A37 /* DingWatch */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		03966EC53811EA67C3F78E43 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B2BBA5F35B26C1ABA8FDC7C6 /* NotificationService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3CAE37816FCEDA5A7C6002A6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -210,7 +251,8 @@
 		169F028DD9E3945A01AED1FA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ding_icon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.sijun.ding.watchkitapp;
@@ -227,6 +269,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ding_icon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -288,7 +331,8 @@
 		73591FF7805D82963C12A9E1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ding_icon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = DingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 9ZMW52M7L5;
@@ -310,6 +354,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ding_icon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -361,10 +406,53 @@
 			};
 			name = Release;
 		};
+		D39111A3A27582795A8D768C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DingNotificationService/DingNotificationService.entitlements;
+				DEVELOPMENT_TEAM = 9ZMW52M7L5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = com.apple.usernotifications.service;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.sijun.ding.notification-service";
+				PRODUCT_NAME = DingNotificationService;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		EB799ED5E30EBE217A69769F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = DingNotificationService/DingNotificationService.entitlements;
+				DEVELOPMENT_TEAM = 9ZMW52M7L5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = com.apple.usernotifications.service;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.sijun.ding.notification-service";
+				PRODUCT_NAME = DingNotificationService;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		EE98473A341DEF5A66B50B95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ding_icon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = DingApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 9ZMW52M7L5;
@@ -385,7 +473,8 @@
 		F350DE23743F14D5138168A4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ding_icon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				DEVELOPMENT_TEAM = 9ZMW52M7L5;
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.sijun.ding.watchkitapp;
@@ -408,7 +497,7 @@
 				73591FF7805D82963C12A9E1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		9999A389F61D66CFC0E467DF /* Build configuration list for PBXProject "DingApp" */ = {
 			isa = XCConfigurationList;
@@ -417,7 +506,7 @@
 				9900BF1FCB93C7F6D029B2DB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		FB16DBE2FE9FBF73A44FF3EF /* Build configuration list for PBXNativeTarget "DingWatch" */ = {
 			isa = XCConfigurationList;
@@ -426,7 +515,16 @@
 				169F028DD9E3945A01AED1FA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
+		};
+		FE30CA31233A7816D9627F83 /* Build configuration list for PBXNativeTarget "DingNotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EB799ED5E30EBE217A69769F /* Debug */,
+				D39111A3A27582795A8D768C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
