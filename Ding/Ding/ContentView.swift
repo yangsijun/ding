@@ -125,7 +125,7 @@ struct ContentView: View {
                 .font(.headline)
 
             guideStep(number: 1, text: "Install ding CLI")
-            codeBlock("brew install sijun/tap/ding")
+            codeBlock("brew install yangsijun/tap/ding")
 
             guideStep(number: 2, text: "Copy the token above and run:")
             codeBlock("ding setup <token>")
