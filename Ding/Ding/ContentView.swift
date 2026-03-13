@@ -65,7 +65,7 @@ struct ContentView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Ding")
+            .navigationTitle("Ding!")
         }
     }
 
@@ -78,15 +78,30 @@ struct ContentView: View {
                     .foregroundStyle(.green)
                     .font(.subheadline)
                 
-                // Token display
-                Text(tokenStore.deviceToken)
-                    .font(.system(.caption2, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                    .lineLimit(3)
-                
+                // Token display + regenerate
+                HStack(spacing: 8) {
+                    Text(tokenStore.deviceToken)
+                        .font(.system(.caption2, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding(8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .lineLimit(3)
+
+                    Button {
+                        UIApplication.shared.unregisterForRemoteNotifications()
+                        tokenStore.update(token: "")
+                        Task {
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            UIApplication.shared.registerForRemoteNotifications()
+                        }
+                    } label: {
+                        Image(systemName: "arrow.trianglehead.2.clockwise")
+                            .font(.body)
+                    }
+                    .buttonStyle(.bordered)
+                }
+
                 // Copy / Share
                 HStack(spacing: 8) {
                     Button {
@@ -103,7 +118,7 @@ struct ContentView: View {
                         )
                     }
                     .buttonStyle(.borderedProminent)
-                    
+
                     ShareLink(
                         item: tokenStore.deviceToken,
                         subject: Text("ding Device Token")
@@ -124,7 +139,7 @@ struct ContentView: View {
             Text("Setup")
                 .font(.headline)
 
-            guideStep(number: 1, text: "Install ding CLI")
+            guideStep(number: 1, text: "Install Ding! CLI")
             codeBlock("brew install yangsijun/tap/ding")
 
             guideStep(number: 2, text: "Copy the token above and run:")

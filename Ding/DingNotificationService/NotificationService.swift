@@ -4,6 +4,7 @@ class NotificationService: UNNotificationServiceExtension {
 
     private static let appGroupID = "group.dev.sijun.ding"
     private static let recordsKey = "ding_notification_records"
+    private static let mutedKey = "notificationsMuted"
     private static let saveEnabledKey = "ding_save_notifications_enabled"
 
     private var contentHandler: ((UNNotificationContent) -> Void)?
@@ -19,8 +20,19 @@ class NotificationService: UNNotificationServiceExtension {
         // Save notification record to shared storage
         saveNotificationRecord(from: request.content.userInfo)
 
-        // Pass through the notification content as-is
-        contentHandler(bestAttemptContent ?? request.content)
+        // Check mute state — suppress banner/sound if muted
+        let defaults = UserDefaults(suiteName: Self.appGroupID)
+        let isMuted = defaults?.bool(forKey: Self.mutedKey) ?? false
+
+        if isMuted {
+            // Deliver silently (no banner, no sound)
+            let silentContent = bestAttemptContent ?? (request.content.mutableCopy() as! UNMutableNotificationContent)
+            silentContent.sound = nil
+            silentContent.interruptionLevel = .passive
+            contentHandler(silentContent)
+        } else {
+            contentHandler(bestAttemptContent ?? request.content)
+        }
     }
 
     override func serviceExtensionTimeWillExpire() {

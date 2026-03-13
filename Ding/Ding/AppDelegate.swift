@@ -68,7 +68,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                 self.notificationStore?.add(title: title, body: body, status: "info")
             }
         }
-        let isMuted = UserDefaults.standard.bool(forKey: "notificationsMuted")
+        let isMuted = UserDefaults(suiteName: "group.dev.sijun.ding")?.bool(forKey: "notificationsMuted") ?? false
         completionHandler(isMuted ? [] : [.banner, .sound, .badge])
     }
 

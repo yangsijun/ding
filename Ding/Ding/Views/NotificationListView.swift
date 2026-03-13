@@ -2,7 +2,7 @@ import SwiftUI
 
 struct NotificationListView: View {
     @EnvironmentObject var notificationStore: NotificationStore
-    @AppStorage("notificationsMuted") private var isMuted: Bool = false
+    @AppStorage("notificationsMuted", store: UserDefaults(suiteName: "group.dev.sijun.ding")) private var isMuted: Bool = false
 
     var body: some View {
         NavigationView {
