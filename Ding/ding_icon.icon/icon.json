@@ -6,8 +6,8 @@
     {
       "layers" : [
         {
-          "image-name" : "ding_i.svg",
-          "name" : "ding_i"
+          "image-name" : "ding_d 2.svg",
+          "name" : "ding_d 2"
         }
       ],
       "shadow" : {
@@ -22,8 +22,8 @@
     {
       "layers" : [
         {
-          "image-name" : "ding_d.svg",
-          "name" : "ding_d"
+          "image-name" : "ding_i 2.svg",
+          "name" : "ding_i 2"
         }
       ],
       "shadow" : {
